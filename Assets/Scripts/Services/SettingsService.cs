@@ -7,26 +7,26 @@ namespace Services
     public class SettingsService : MonoBehaviour
     {
         public event Action<bool> OnChanged;
-        
+
         [SerializeField] private AudioMixer _mixer;
-        [SerializeField] private float _defaultMasterVolume = 0.5f; 
-        [SerializeField] private float _defaultSoundsVolume = 0.5f; 
-        [SerializeField] private float _defaultMusicVolume = 0.5f; 
-        [SerializeField] private float _defaultMouseSensitivity = 2f; 
-        [SerializeField] private float _defaultFov = 80f; 
-        [SerializeField] private int _defaultFpsLock = -1; 
-        [SerializeField] private int _defaultFpsCounter = 0; 
-        [SerializeField] private int _defaultVsync = 0; 
-        
-        private const string MasterVolumePrefKey = "MasterVolume"; 
-        private const string SoundsVolumePrefKey = "SoundsVolume"; 
+        [SerializeField] private float _defaultMasterVolume = 0.5f;
+        [SerializeField] private float _defaultSoundsVolume = 0.5f;
+        [SerializeField] private float _defaultMusicVolume = 0.5f;
+        [SerializeField] private float _defaultMouseSensitivity = 2f;
+        [SerializeField] private float _defaultFov = 80f;
+        [SerializeField] private int _defaultFpsLock = -1;
+        [SerializeField] private int _defaultFpsCounter = 0;
+        [SerializeField] private int _defaultVsync = 0;
+
+        private const string MasterVolumePrefKey = "MasterVolume";
+        private const string SoundsVolumePrefKey = "SoundsVolume";
         private const string MusicVolumePrefKey = "MusicVolume";
         private const string MouseSensitivityPrefKey = "MouseSensitivity";
         private const string FovPrefKey = "Fov";
         private const string FpsCounterPrefKey = "FpsCounter";
         private const string MaxFpsLockPrefKey = "FpsLock";
         private const string VsyncPrefKey = "Vsync";
-        
+
         public float SavedMasterVolume { get; private set; }
         public float SavedSoundsVolume { get; private set; }
         public float SavedMusicVolume { get; private set; }
@@ -35,7 +35,7 @@ namespace Services
         public bool SavedFpsCounter { get; private set; }
         public bool SavedVsync { get; private set; }
         public int SavedMaxFpsLock { get; private set; }
-        
+
         private void Awake()
         {
             SavedMasterVolume = PlayerPrefs.GetFloat(MasterVolumePrefKey, _defaultMasterVolume);
@@ -57,7 +57,7 @@ namespace Services
             SetFov(SavedFov);
             SetFpsCounter(SavedFpsCounter);
             SetMaxFpsLock(SavedMaxFpsLock);
-            SetVsync(SavedVsync);
+            ApplyVsync(SavedVsync);
         }
 
         public void SetMasterVolume(float value)
@@ -77,20 +77,20 @@ namespace Services
             SavedMusicVolume = value;
             SetVolume(value, MusicVolumePrefKey);
         }
-        
+
         public void SetMouseSensitivity(float value)
         {
             SavedMouseSensitivity = value;
             PlayerPrefs.SetFloat(MouseSensitivityPrefKey, value);
         }
 
-		public void SetFov(float value)
-		{
-			SavedFov = value;
-			PlayerPrefs.SetFloat(FovPrefKey, value);
-		}
+        public void SetFov(float value)
+        {
+            SavedFov = value;
+            PlayerPrefs.SetFloat(FovPrefKey, value);
+        }
 
-		public void SetFpsCounter(bool value)
+        public void SetFpsCounter(bool value)
         {
             SavedFpsCounter = value;
             PlayerPrefs.SetInt(FpsCounterPrefKey, value ? 1 : 0);
@@ -107,8 +107,14 @@ namespace Services
         public void SetVsync(bool value)
         {
             SavedVsync = value;
-            QualitySettings.vSyncCount = SavedVsync ? 1 : 0;
             PlayerPrefs.SetInt(VsyncPrefKey, value ? 1 : 0);
+            ApplyVsync(value);
+        }
+
+        private void ApplyVsync(bool value)
+        {
+            QualitySettings.vSyncCount = value ? 1 : 0;
+            Application.targetFrameRate = value ? 60 : SavedMaxFpsLock;
         }
 
         public void SaveSettings()
@@ -120,10 +126,9 @@ namespace Services
         {
             value = Mathf.Clamp(value, 0.0001f, 1f);
             var volume = Mathf.Log10(value) * 20f;
-            
-            _mixer.SetFloat(name, volume); 
-            
-            PlayerPrefs.SetFloat(name, value); 
+
+            _mixer.SetFloat(name, volume);
+            PlayerPrefs.SetFloat(name, value);
         }
     }
 }
