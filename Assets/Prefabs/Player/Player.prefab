@@ -682,10 +682,10 @@ Light:
   serializedVersion: 11
   m_Type: 0
   m_Color: {r: 0.9169811, g: 0.8572617, b: 0.6280455, a: 1}
-  m_Intensity: 30
+  m_Intensity: 50
   m_Range: 20
-  m_SpotAngle: 95.32288
-  m_InnerSpotAngle: 68.819275
+  m_SpotAngle: 90
+  m_InnerSpotAngle: 25
   m_CookieSize: 10
   m_Shadows:
     m_Type: 0
