@@ -314,6 +314,7 @@ GameObject:
   - component: {fileID: 369678109494785529}
   - component: {fileID: 4365380675382210840}
   - component: {fileID: 913898588002318515}
+  - component: {fileID: 1808797372355400439}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -392,8 +393,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _camera: {fileID: 6971790961727192834}
-  _tiltAngle: 3
-  _tiltSmoothTime: 0.15
   _sprintFovMultiplier: 1.15
   _fovTransitionSpeed: 10
   _moveSpeed: 11
@@ -478,6 +477,21 @@ MonoBehaviour:
   _stepsInterval: 0.5
   _minPitch: 0.9
   _maxPitch: 1.1
+--- !u!114 &1808797372355400439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4373928934137332196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee404bc25e757504e9285bd5631f38ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _flashlight: {fileID: 8423953538433833137}
+  _batteryCapacity: 100
+  _drainRate: 5
 --- !u!1 &6587283782766284503
 GameObject:
   m_ObjectHideFlags: 0

@@ -30,7 +30,8 @@ namespace Installers
 			);
 			Container.Bind<PlayerInventory>().FromComponentOn(player).AsSingle().NonLazy();
 			Container.Bind<PlayerHealth>().FromComponentOn(player).AsSingle().NonLazy();
-			Container.Bind<PlayerControls>().FromComponentOn(player).AsSingle().NonLazy();
+            Container.Bind<FlashlightController>().FromComponentOn(player).AsSingle().NonLazy();
+            Container.Bind<PlayerControls>().FromComponentOn(player).AsSingle().NonLazy();
 			Container.Bind<PlayerComponent>().FromComponentOn(player).AsSingle().NonLazy();
 		}
     }
