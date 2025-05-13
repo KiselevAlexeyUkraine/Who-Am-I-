@@ -10,10 +10,7 @@ namespace Components.Props
     {
         public event Action Opened;
 
-        [SerializeField] private Collider _trigger;
-        [SerializeField] private Transform _door;
         [SerializeField] private KeyType _type;
-        [SerializeField] private float _openingDuration;
     
         private PlayerInventory _playerInventory;
 
@@ -28,7 +25,7 @@ namespace Components.Props
             if (other.CompareTag("Player") && _playerInventory.HasKey(_type))
             {
                 _playerInventory.UseKey(_type);
-                _trigger.enabled = false;
+                
                 
             }
         }

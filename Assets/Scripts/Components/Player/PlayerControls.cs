@@ -10,38 +10,45 @@ namespace Components.Player
     {
         public event Action OnJump;
         public event Action OnMove;
+        public event Action<float> OnStaminaChanged;
 
         [Header("Camera Settings")]
-        [SerializeField] private Camera _camera;                        // Main player camera
-        [SerializeField] private float _sprintFovMultiplier = 1.15f;    // Multiplier for FOV when sprinting
-        [SerializeField] private float _fovTransitionSpeed = 10f;       // Speed of FOV transition
+        [SerializeField] private Camera _camera;
+        [SerializeField] private float _sprintFovMultiplier = 1.15f;
+        [SerializeField] private float _fovTransitionSpeed = 10f;
 
         [Header("Movement Settings")]
-        [Tooltip("Скорость игрока")]
-        [SerializeField] private float _moveSpeed = 5f;                 
-        [Tooltip("Ускорение игрока")]
+        [SerializeField] private float _moveSpeed = 5f;
         [SerializeField] private float _sprintMultiplier = 1.5f;
-        [Tooltip("Сила прыжка игрока")]
-        [SerializeField] private float _jumpForce = 5f;    
-        [SerializeField] private float _gravity = 9.81f;                // Gravity force
-        [SerializeField] private float _fallMultiplier = 2.5f;          // Extra gravity when falling
+        [SerializeField] private float _jumpForce = 5f;
+        [SerializeField] private float _gravity = 9.81f;
+        [SerializeField] private float _fallMultiplier = 2.5f;
 
         [Header("Mouse Look Settings")]
-        [SerializeField] private float _mouseSmoothTime = 0.1f;         // Mouse smoothing factor
-        [SerializeField] private float _maxLookAngle = 90f;             // Clamp vertical camera rotation
+        [SerializeField] private float _mouseSmoothTime = 0.1f;
+        [SerializeField] private float _maxLookAngle = 90f;
 
         [Header("Crouch Settings")]
-        [SerializeField] private float _crouchHeight = 1f;              // Height when crouching
-        [SerializeField] private float _standHeight = 2f;              // Height when standing
-        [SerializeField] private float _crouchSpeed = 2.5f;             // Movement speed when crouched
-        [SerializeField] private float _crouchTransitionSpeed = 6f;     // Speed of crouch transition
+        [SerializeField] private float _crouchHeight = 1f;
+        [SerializeField] private float _standHeight = 2f;
+        [SerializeField] private float _crouchSpeed = 2.5f;
+        [SerializeField] private float _crouchTransitionSpeed = 6f;
+
+        [Header("Stamina Settings")]
+        [SerializeField] private float _maxStamina = 100f;
+        [SerializeField] private float _staminaRecoveryStanding = 20f;
+        [SerializeField] private float _staminaRecoveryWalking = 5f;
+        [SerializeField] private float _staminaDrainSprinting = 10f;
+        [SerializeField] private float _staminaSprintThreshold = 10f;
 
         [Header("Ground and Ceil Check")]
-        [SerializeField] private Transform _groundCheckerTransform;     // Ground check origin
-        [SerializeField] private Transform _ceilCheckerTransform;       // Ceiling check origin
-        [SerializeField] private LayerMask _groundLayer;                // Ground layer mask
-        [SerializeField] private float _checkerRadius;                  // Radius for ground/ceiling checks
+        [SerializeField] private Transform _groundCheckerTransform;
+        [SerializeField] private Transform _ceilCheckerTransform;
+        [SerializeField] private LayerMask _groundLayer;
+        [SerializeField] private float _checkerRadius;
 
+        private float _currentStamina;
+        private bool _isStaminaExhausted;
         private CharacterController _character;
         private SettingsService _settings;
         private InputService _input;
@@ -66,6 +73,9 @@ namespace Components.Player
         {
             _character = GetComponent<CharacterController>();
             _camera.fieldOfView = _settings.SavedFov;
+            _currentStamina = _maxStamina;
+            _isStaminaExhausted = false;
+            OnStaminaChanged?.Invoke(_currentStamina / _maxStamina);
         }
 
         private void Update()
@@ -81,29 +91,62 @@ namespace Components.Player
             MouseLook();
             Crouch();
             ChangeFov();
+            UpdateStamina();
         }
 
         private void Move()
         {
-            var speed = (_isCrouching ? _crouchSpeed : _moveSpeed) * (_input.Sprint && !_isCrouching ? _sprintMultiplier : 1f);
+            bool canSprint = !_isStaminaExhausted;
+            var isSprinting = _input.Sprint && !_isCrouching && canSprint;
+            var speed = (_isCrouching ? _crouchSpeed : _moveSpeed) * (isSprinting ? _sprintMultiplier : 1f);
             _motion = transform.right * _input.Horizontal + transform.forward * _input.Vertical;
 
             if (_motion.magnitude > 1f)
-            {
                 _motion.Normalize();
-            }
 
             if (_motion.magnitude > 0.5f)
-            {
                 OnMove?.Invoke();
-            }
 
             _character.Move(_motion * (speed * Time.deltaTime));
         }
 
+        private void UpdateStamina()
+        {
+            bool isMoving = _motion.magnitude > 0.1f;
+            bool isSprinting = _input.Sprint && isMoving && !_isCrouching && !_isStaminaExhausted;
+
+            if (isSprinting)
+            {
+                _currentStamina -= _staminaDrainSprinting * Time.deltaTime;
+                if (_currentStamina <= 0f)
+                {
+                    _currentStamina = 0f;
+                    _isStaminaExhausted = true;
+                }
+            }
+            else if (!isMoving)
+            {
+                _currentStamina += _staminaRecoveryStanding * Time.deltaTime;
+            }
+            else
+            {
+                _currentStamina += _staminaRecoveryWalking * Time.deltaTime;
+            }
+
+            if (_isStaminaExhausted && _currentStamina >= _staminaSprintThreshold)
+            {
+                _isStaminaExhausted = false;
+            }
+
+            _currentStamina = Mathf.Clamp(_currentStamina, 0f, _maxStamina);
+            OnStaminaChanged?.Invoke(_currentStamina / _maxStamina);
+        }
+
         private void ChangeFov()
         {
-            var fov = _input.Sprint && !Mathf.Approximately(_motion.magnitude, 0f) ? _settings.SavedFov * _sprintFovMultiplier : _settings.SavedFov;
+            var fov = _input.Sprint && !Mathf.Approximately(_motion.magnitude, 0f) && !_isStaminaExhausted
+                ? _settings.SavedFov * _sprintFovMultiplier
+                : _settings.SavedFov;
             _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, fov, Time.deltaTime * _fovTransitionSpeed);
         }
 
@@ -121,13 +164,9 @@ namespace Components.Player
             }
 
             if (_velocity.y < 0)
-            {
                 _velocity.y -= _gravity * _fallMultiplier * Time.deltaTime;
-            }
             else
-            {
                 _velocity.y -= _gravity * Time.deltaTime;
-            }
 
             _character.Move(_velocity * Time.deltaTime);
         }

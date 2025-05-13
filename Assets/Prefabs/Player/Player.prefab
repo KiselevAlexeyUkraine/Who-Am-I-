@@ -395,7 +395,7 @@ MonoBehaviour:
   _camera: {fileID: 6971790961727192834}
   _sprintFovMultiplier: 1.15
   _fovTransitionSpeed: 10
-  _moveSpeed: 11
+  _moveSpeed: 5
   _sprintMultiplier: 1.5
   _jumpForce: 1.6
   _gravity: 30
@@ -406,6 +406,11 @@ MonoBehaviour:
   _standHeight: 2
   _crouchSpeed: 7
   _crouchTransitionSpeed: 20
+  _maxStamina: 100
+  _staminaRecoveryStanding: 5
+  _staminaRecoveryWalking: 2
+  _staminaDrainSprinting: 10
+  _staminaSprintThreshold: 20
   _groundCheckerTransform: {fileID: 8061440719415417884}
   _ceilCheckerTransform: {fileID: 399605628030573610}
   _groundLayer:
