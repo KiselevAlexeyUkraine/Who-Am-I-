@@ -1,3 +1,4 @@
+using Components.Interaction;
 using Components.Player;
 using Components.Ui.Pages;
 using Services;
@@ -32,7 +33,8 @@ namespace Installers
 			Container.Bind<PlayerHealth>().FromComponentOn(player).AsSingle().NonLazy();
             Container.Bind<FlashlightController>().FromComponentOn(player).AsSingle().NonLazy();
             Container.Bind<PlayerControls>().FromComponentOn(player).AsSingle().NonLazy();
-			Container.Bind<PlayerComponent>().FromComponentOn(player).AsSingle().NonLazy();
+            Container.Bind<InteractionRaycaster>().FromComponentOn(player).AsSingle().NonLazy();
+            Container.Bind<PlayerComponent>().FromComponentOn(player).AsSingle().NonLazy();
 		}
     }
 }

@@ -1,33 +1,33 @@
-using Components.Items;
-using Components.Player;
-using System;
 using UnityEngine;
-using Zenject;
+using Components.Interaction;
 
 namespace Components.Props
 {
-    public class Door : MonoBehaviour
+    public class Door : MonoBehaviour, IInteractable
     {
-        public event Action Opened;
+        private Animator animator;
+        private AudioSource audioSource;
+        private bool isOpen;
 
-        [SerializeField] private KeyType _type;
-    
-        private PlayerInventory _playerInventory;
-
-        [Inject]
-        private void Construct(PlayerInventory inventory)
+        private void Start()
         {
-            _playerInventory = inventory;
+            animator = GetComponent<Animator>();
+            audioSource = GetComponent<AudioSource>();
         }
 
-        private void OnTriggerEnter(Collider other)
+        public void Interact()
         {
-            if (other.CompareTag("Player") && _playerInventory.HasKey(_type))
+            if (!isOpen)
             {
-                _playerInventory.UseKey(_type);
-                
-                
+                animator.Play("Open");
             }
+            else
+            {
+                animator.Play("Close");
+            }
+
+            audioSource.Play();
+            isOpen = !isOpen;
         }
     }
 }

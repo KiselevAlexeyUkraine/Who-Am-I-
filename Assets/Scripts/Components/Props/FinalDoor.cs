@@ -17,16 +17,16 @@ namespace Assets.Scripts.Components.Props
 			_pageSwitcher = pageSwitcher;
 		}
 
-		private void Awake()
-		{
-			_door = GetComponent<Door>();
-			_door.Opened += CompleteLevel;
-		}
+		//private void Awake()
+		//{
+		//	_door = GetComponent<Door>();
+		//	_door.Opened += CompleteLevel;
+		//}
 
-		private void OnDestroy()
-		{
-			_door.Opened -= CompleteLevel;
-		}
+		//private void OnDestroy()
+		//{
+		//	_door.Opened -= CompleteLevel;
+		//}
 
 		private void CompleteLevel()
 		{

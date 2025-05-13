@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 399605628030573610}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: CeilChecker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 6971790961727192834}
   - component: {fileID: 1744510091447264297}
   - component: {fileID: 1575648470886322553}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -179,7 +179,7 @@ GameObject:
   m_Component:
   - component: {fileID: 391824585867334687}
   - component: {fileID: 2812951025336758261}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: AudioSource
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -315,7 +315,8 @@ GameObject:
   - component: {fileID: 4365380675382210840}
   - component: {fileID: 913898588002318515}
   - component: {fileID: 1808797372355400439}
-  m_Layer: 9
+  - component: {fileID: 3153441882707883923}
+  m_Layer: 3
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -497,6 +498,26 @@ MonoBehaviour:
   _flashlight: {fileID: 8423953538433833137}
   _batteryCapacity: 100
   _drainRate: 5
+--- !u!114 &3153441882707883923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4373928934137332196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e55d07d2dd2dcd3409d770ba0e0268fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rayDistance: 3
+  _interactableLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  _crosshairImage: {fileID: 0}
+  _crosshairStates:
+  - {fileID: 21300000, guid: 50061267d0bcba149be08d4cb724d78e, type: 3}
+  - {fileID: 21300000, guid: 27e611717c839d849b076c9ef3c81216, type: 3}
 --- !u!1 &6587283782766284503
 GameObject:
   m_ObjectHideFlags: 0
@@ -507,7 +528,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3050889825376459530}
   - component: {fileID: 5499836153303410684}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: StepsSource
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -635,7 +656,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8061440719415417884}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: GroundChecker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -668,7 +689,7 @@ GameObject:
   - component: {fileID: 7683959280861571349}
   - component: {fileID: 8423953538433833137}
   - component: {fileID: 802580574129164279}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Spot Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
