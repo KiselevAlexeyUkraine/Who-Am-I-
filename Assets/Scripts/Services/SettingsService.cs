@@ -46,6 +46,7 @@ namespace Services
             SavedFpsCounter = PlayerPrefs.GetInt(FpsCounterPrefKey, _defaultFpsCounter) == 1;
             SavedMaxFpsLock = PlayerPrefs.GetInt(MaxFpsLockPrefKey, _defaultFpsLock);
             SavedVsync = PlayerPrefs.GetInt(VsyncPrefKey, _defaultVsync) == 1;
+
         }
 
         private void Start()

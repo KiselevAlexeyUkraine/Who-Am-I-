@@ -1,3 +1,4 @@
+// ✅ SettingsPage.cs — синхронизированная логика отображения и применения VSync
 using Services;
 using TMPro;
 using UnityEngine;
@@ -73,7 +74,8 @@ namespace Components.Ui.Pages.Menu
             _fpsLockSlider.onValueChanged.AddListener(value =>
             {
                 int intValue = (int)value;
-                _settingsService.SetMaxFpsLock(intValue < (int)_fpsLockSlider.minValue + 1 ? -1 : intValue);
+                if (!_vsyncToggle.isOn)
+                    _settingsService.SetMaxFpsLock(intValue < (int)_fpsLockSlider.minValue + 1 ? -1 : intValue);
                 _fpsLockValue.text = _vsyncToggle.isOn ? "VSync" : (intValue < (int)_fpsLockSlider.minValue + 1 ? "Выкл." : $"{intValue}");
             });
 
@@ -103,6 +105,10 @@ namespace Components.Ui.Pages.Menu
             _fpsCounterToggle.isOn = _settingsService.SavedFpsCounter;
             _vsyncToggle.isOn = _settingsService.SavedVsync;
             _vsyncValue.text = _settingsService.SavedVsync ? "Вкл." : "Выкл.";
+
+            QualitySettings.vSyncCount = _settingsService.SavedVsync ? 1 : 0;
+            Application.targetFrameRate = _settingsService.SavedVsync ? 60 : _settingsService.SavedMaxFpsLock;
+
             _fpsLockSlider.interactable = !_settingsService.SavedVsync;
             _fpsLockValue.text = _settingsService.SavedVsync ? "VSync" : (_settingsService.SavedMaxFpsLock < _fpsLockSlider.minValue + 1 ? "Выкл." : $"{_settingsService.SavedMaxFpsLock}");
         }

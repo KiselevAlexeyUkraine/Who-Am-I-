@@ -72,7 +72,8 @@ namespace Components.Ui.Pages.Game
             _fpsLockSlider.onValueChanged.AddListener(value =>
             {
                 int intValue = (int)value;
-                _settingsService.SetMaxFpsLock(intValue < (int)_fpsLockSlider.minValue + 1 ? -1 : intValue);
+                if (!_vsyncToggle.isOn)
+                    _settingsService.SetMaxFpsLock(intValue < (int)_fpsLockSlider.minValue + 1 ? -1 : intValue);
                 _fpsLockValue.text = _vsyncToggle.isOn ? "VSync" : (intValue < (int)_fpsLockSlider.minValue + 1 ? "Выкл." : $"{intValue}");
             });
 
@@ -86,6 +87,7 @@ namespace Components.Ui.Pages.Game
             {
                 _settingsService.SetVsync(value);
                 _vsyncValue.text = value ? "Вкл." : "Выкл.";
+
                 _fpsLockSlider.interactable = !value;
                 _fpsLockValue.text = value ? "VSync" : (_fpsLockSlider.value < _fpsLockSlider.minValue + 1 ? "Выкл." : $"{(int)_fpsLockSlider.value}");
             });
@@ -102,10 +104,12 @@ namespace Components.Ui.Pages.Game
             _fpsCounterToggle.isOn = _settingsService.SavedFpsCounter;
             _vsyncToggle.isOn = _settingsService.SavedVsync;
             _vsyncValue.text = _settingsService.SavedVsync ? "Вкл." : "Выкл.";
+
+            QualitySettings.vSyncCount = _settingsService.SavedVsync ? 1 : 0;
+            Application.targetFrameRate = _settingsService.SavedVsync ? 60 : _settingsService.SavedMaxFpsLock;
+
             _fpsLockSlider.interactable = !_settingsService.SavedVsync;
             _fpsLockValue.text = _settingsService.SavedVsync ? "VSync" : (_settingsService.SavedMaxFpsLock < _fpsLockSlider.minValue + 1 ? "Выкл." : $"{_settingsService.SavedMaxFpsLock}");
-
-            _fpsLockSlider.onValueChanged?.Invoke(_settingsService.SavedMaxFpsLock);
         }
 
         private void OnDestroy()
