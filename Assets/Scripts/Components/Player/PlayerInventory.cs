@@ -8,8 +8,6 @@ namespace Components.Player
     public class PlayerInventory : MonoBehaviour
     {
         public event Action OnKeysChanged;
-        public event Action OnWeaponAdd;
-        public event Action OnAmmoChanged;
 
         private Dictionary<KeyType, int> _keys = new();
 
