@@ -12,46 +12,45 @@ namespace Components.Player
         public event Action OnMove;
 
         [Header("Camera Settings")]
-        [SerializeField] private Camera _camera;
-        [SerializeField] private float _tiltAngle = 3f;
-        [SerializeField] private float _tiltSmoothTime = 0.1f;
-        [SerializeField] private float _sprintFovMultiplier = 1.15f;
-        [SerializeField] private float _fovTransitionSpeed = 10f;
-        
+        [SerializeField] private Camera _camera;                        // Main player camera
+        [SerializeField] private float _sprintFovMultiplier = 1.15f;    // Multiplier for FOV when sprinting
+        [SerializeField] private float _fovTransitionSpeed = 10f;       // Speed of FOV transition
+
         [Header("Movement Settings")]
-        [SerializeField] private float _moveSpeed = 5f;
+        [Tooltip("Скорость игрока")]
+        [SerializeField] private float _moveSpeed = 5f;                 
+        [Tooltip("Ускорение игрока")]
         [SerializeField] private float _sprintMultiplier = 1.5f;
-        [SerializeField] private float _jumpForce = 5f;
-        [SerializeField] private float _gravity = 9.81f;
-        [SerializeField] private float _fallMultiplier = 2.5f;
+        [Tooltip("Сила прыжка игрока")]
+        [SerializeField] private float _jumpForce = 5f;    
+        [SerializeField] private float _gravity = 9.81f;                // Gravity force
+        [SerializeField] private float _fallMultiplier = 2.5f;          // Extra gravity when falling
 
         [Header("Mouse Look Settings")]
-        [SerializeField] private float _mouseSmoothTime = 0.1f;
-        [SerializeField] private float _maxLookAngle = 90f;
+        [SerializeField] private float _mouseSmoothTime = 0.1f;         // Mouse smoothing factor
+        [SerializeField] private float _maxLookAngle = 90f;             // Clamp vertical camera rotation
 
         [Header("Crouch Settings")]
-        [SerializeField] private float _crouchHeight = 1f;
-        [SerializeField] private float _standHeight = 2f;
-        [SerializeField] private float _crouchSpeed = 2.5f;
-        [SerializeField] private float _crouchTransitionSpeed = 6f;
+        [SerializeField] private float _crouchHeight = 1f;              // Height when crouching
+        [SerializeField] private float _standHeight = 2f;              // Height when standing
+        [SerializeField] private float _crouchSpeed = 2.5f;             // Movement speed when crouched
+        [SerializeField] private float _crouchTransitionSpeed = 6f;     // Speed of crouch transition
 
         [Header("Ground and Ceil Check")]
-        [SerializeField] private Transform _groundCheckerTransform;
-        [SerializeField] private Transform _ceilCheckerTransform;
-        [SerializeField] private LayerMask _groundLayer;
-        [SerializeField] private float _checkerRadius;
+        [SerializeField] private Transform _groundCheckerTransform;     // Ground check origin
+        [SerializeField] private Transform _ceilCheckerTransform;       // Ceiling check origin
+        [SerializeField] private LayerMask _groundLayer;                // Ground layer mask
+        [SerializeField] private float _checkerRadius;                  // Radius for ground/ceiling checks
 
         private CharacterController _character;
         private SettingsService _settings;
         private InputService _input;
         private PauseService _pause;
-        
+
         private Vector2 _currentMouseDeltaVelocity;
         private Vector2 _currentMouseDelta;
         private Vector3 _velocity;
         private float _xRotation;
-        private float _zRotation;
-        private float _currentZRotationVelocity;
         private bool _isCrouching;
         private Vector3 _motion;
 
@@ -62,7 +61,7 @@ namespace Components.Player
             _settings = settingsService;
             _pause = pauseService;
         }
-        
+
         private void Start()
         {
             _character = GetComponent<CharacterController>();
@@ -76,7 +75,7 @@ namespace Components.Player
                 _camera.fieldOfView = _settings.SavedFov;
                 return;
             }
-            
+
             Move();
             ApplyGravity();
             MouseLook();
@@ -96,17 +95,17 @@ namespace Components.Player
 
             if (_motion.magnitude > 0.5f)
             {
-				OnMove?.Invoke();
-			}
+                OnMove?.Invoke();
+            }
 
-			_character.Move(_motion * (speed * Time.deltaTime));
+            _character.Move(_motion * (speed * Time.deltaTime));
         }
 
         private void ChangeFov()
         {
-			var fov = _input.Sprint && !Mathf.Approximately(_motion.magnitude, 0f) ? _settings.SavedFov * _sprintFovMultiplier : _settings.SavedFov;
-			_camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, fov, Time.deltaTime * _fovTransitionSpeed);
-		}
+            var fov = _input.Sprint && !Mathf.Approximately(_motion.magnitude, 0f) ? _settings.SavedFov * _sprintFovMultiplier : _settings.SavedFov;
+            _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, fov, Time.deltaTime * _fovTransitionSpeed);
+        }
 
         private void ApplyGravity()
         {
@@ -138,20 +137,15 @@ namespace Components.Player
             var mouseX = _input.MouseX * _settings.SavedMouseSensitivity;
             var mouseY = _input.MouseY * _settings.SavedMouseSensitivity;
             var targetMouseDelta = new Vector2(mouseX, mouseY);
-            var targetZRotation = -_input.Horizontal * _tiltAngle;
-            
+
             _currentMouseDelta = Vector2.SmoothDamp(
                 _currentMouseDelta, targetMouseDelta, ref _currentMouseDeltaVelocity, _mouseSmoothTime
-            );
-            
-            _zRotation = Mathf.SmoothDamp(
-                _zRotation, targetZRotation, ref _currentZRotationVelocity, _tiltSmoothTime
             );
 
             _xRotation -= _currentMouseDelta.y;
             _xRotation = Mathf.Clamp(_xRotation, -_maxLookAngle, _maxLookAngle);
-            
-            _camera.transform.localRotation = Quaternion.Euler(_xRotation, 0f, _zRotation);
+
+            _camera.transform.localRotation = Quaternion.Euler(_xRotation, 0f, 0f);
             transform.Rotate(Vector3.up, _currentMouseDelta.x);
         }
 
@@ -172,10 +166,10 @@ namespace Components.Player
 
         private bool IsGrounded =>
             Physics.CheckSphere(_groundCheckerTransform.position, _checkerRadius, _groundLayer.value);
-        
-        private bool IsFloored => 
+
+        private bool IsFloored =>
             Physics.CheckSphere(_ceilCheckerTransform.position, _checkerRadius, _groundLayer.value);
-        
+
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
