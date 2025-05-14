@@ -8,8 +8,12 @@ namespace Components.Player
     public class PlayerInventory : MonoBehaviour
     {
         public event Action OnKeysChanged;
+        public event Action OnItemsChanged;
 
         private Dictionary<KeyType, int> _keys = new();
+
+        [SerializeField] private int _medkitCount;
+        [SerializeField] private int _batteryCount;
 
         public void AddKey(KeyType type)
         {
@@ -18,40 +22,56 @@ namespace Components.Player
                 _keys[type]++;
             }
 
-			OnKeysChanged?.Invoke();
+            OnKeysChanged?.Invoke();
         }
 
         public void UseKey(KeyType type)
         {
-            if (_keys.TryGetValue(type, out var amount))
+            if (_keys.TryGetValue(type, out var amount) && amount > 0)
             {
-                if (amount > 0)
-                {
-                    amount--;
-                    _keys[type] = amount;
-                    OnKeysChanged?.Invoke();
-                }
+                _keys[type] = amount - 1;
+                OnKeysChanged?.Invoke();
             }
         }
-        
-        public bool HasKey(KeyType type)
-        {
-            if (_keys.TryGetValue(type, out var amount))
-            {
-                return amount > 0;
-            }
 
-            return false;
+        public bool HasKey(KeyType type) =>
+            _keys.TryGetValue(type, out var amount) && amount > 0;
+
+        public int GetKeyAmount(KeyType type) =>
+            _keys.TryGetValue(type, out var amount) ? amount : 0;
+
+        public void AddMedkit()
+        {
+            _medkitCount++;
+            OnItemsChanged?.Invoke();
         }
 
-        public int GetKeyAmount(KeyType type)
+        public void UseMedkit()
         {
-			if (_keys.TryGetValue(type, out var amount))
-			{
-				return amount;
-			}
+            if (_medkitCount > 0)
+            {
+                _medkitCount--;
+                OnItemsChanged?.Invoke();
+            }
+        }
 
-            return 0;
-		}
+        public int GetMedkitCount() => _medkitCount;
+
+        public void AddBattery()
+        {
+            _batteryCount++;
+            OnItemsChanged?.Invoke();
+        }
+
+        public void UseBattery()
+        {
+            if (_batteryCount > 0)
+            {
+                _batteryCount--;
+                OnItemsChanged?.Invoke();
+            }
+        }
+
+        public int GetBatteryCount() => _batteryCount;
     }
 }

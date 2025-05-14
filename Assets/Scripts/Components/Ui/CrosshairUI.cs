@@ -9,7 +9,7 @@ namespace Components.Ui
     {
         [Header("Crosshair UI")]
         [SerializeField] private Image _crosshairImage;
-        [SerializeField] private Sprite[] _crosshairStates; // [0] - default, [1] - interactable
+        [SerializeField] private Sprite[] _crosshairStates;
 
         private void OnEnable()
         {
@@ -24,10 +24,7 @@ namespace Components.Ui
 
         private void UpdateCrosshair(int index)
         {
-            if (_crosshairStates != null && _crosshairStates.Length > index && _crosshairImage != null)
-            {
-                _crosshairImage.sprite = _crosshairStates[index];
-            }
+            _crosshairImage.sprite = _crosshairStates[index];
         }
     }
 }

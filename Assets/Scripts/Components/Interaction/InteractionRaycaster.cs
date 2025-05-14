@@ -1,6 +1,7 @@
 using UnityEngine;
 using Services;
 using Zenject;
+using Components.Player;
 
 namespace Components.Interaction
 {
@@ -10,10 +11,12 @@ namespace Components.Interaction
         [SerializeField] private float _rayDistance = 3f;
         [SerializeField] private LayerMask _interactableLayer;
 
-        public static event System.Action<int> OnCrosshairChange; // 0 - default, 1 - interactable
+        public static event System.Action<int> OnCrosshairChange;
 
         private Camera _camera;
         private InputService _input;
+        private PlayerInventory _inventory;
+        private DiContainer _container;
 
         [Inject]
         private void Construct(InputService input)
@@ -21,9 +24,18 @@ namespace Components.Interaction
             _input = input;
         }
 
+        [Inject]
+        private void Construct(DiContainer container)
+        {
+            _container = container;
+        }
+
         private void Start()
         {
             _camera = Camera.main;
+            _inventory = _container.Resolve<PlayerInventory>();
+
+
             OnCrosshairChange?.Invoke(0);
         }
 
@@ -35,14 +47,48 @@ namespace Components.Interaction
                 return;
             }
 
-            if (hit.collider.CompareTag("Item"))
+            var target = hit.collider.gameObject;
+
+            if (target.CompareTag("Item"))
             {
                 OnCrosshairChange?.Invoke(1);
 
                 if (_input.Action)
                 {
-                    IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-                    interactable?.Interact();
+                    string lowerName = target.name.ToLower();
+
+                    if (lowerName.Contains("health"))
+                    {
+                        _inventory?.AddMedkit();
+                        Destroy(target);
+                    }
+
+                    else if (lowerName.Contains("battery"))
+                    {
+                        _inventory?.AddBattery();
+                        Destroy(target);
+                    }
+                    else if (_input.Action)
+                    {
+                        IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+                        interactable?.Interact();
+                    }
+
+                    else if (lowerName.Contains("red key"))
+                    {
+                        //_inventory?.AddKey(KeyType.Red);
+                        Destroy(target);
+                    }
+                    else if (lowerName.Contains("blue key"))
+                    {
+                        //_inventory?.AddKey(KeyType.Blue);
+                        Destroy(target);
+                    }
+                    else if (lowerName.Contains("yellow key"))
+                    {
+                        //_inventory?.AddKey(KeyType.Yellow);
+                        Destroy(target);
+                    }
                 }
             }
             else

@@ -312,7 +312,6 @@ GameObject:
   - component: {fileID: 8304542302354588757}
   - component: {fileID: 664214233681919601}
   - component: {fileID: 369678109494785529}
-  - component: {fileID: 4365380675382210840}
   - component: {fileID: 913898588002318515}
   - component: {fileID: 1808797372355400439}
   - component: {fileID: 3153441882707883923}
@@ -444,23 +443,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99d8ce597ea1ea7419a1dea572efd371, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &4365380675382210840
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4373928934137332196}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ec9367c1a1f2b44f815520bec45b7d8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _playerHealth: {fileID: 664214233681919601}
-  _playerInventory: {fileID: 369678109494785529}
-  _itemLayer:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!114 &913898588002318515
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -514,10 +496,6 @@ MonoBehaviour:
   _interactableLayer:
     serializedVersion: 2
     m_Bits: 64
-  _crosshairImage: {fileID: 0}
-  _crosshairStates:
-  - {fileID: 21300000, guid: 50061267d0bcba149be08d4cb724d78e, type: 3}
-  - {fileID: 21300000, guid: 27e611717c839d849b076c9ef3c81216, type: 3}
 --- !u!1 &6587283782766284503
 GameObject:
   m_ObjectHideFlags: 0

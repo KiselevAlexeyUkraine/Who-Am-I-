@@ -8,11 +8,13 @@ namespace Components.Props
         private Animator animator;
         private AudioSource audioSource;
         private bool isOpen;
+        private Collider boxCollider;
 
         private void Start()
         {
             animator = GetComponent<Animator>();
             audioSource = GetComponent<AudioSource>();
+            boxCollider = GetComponent<Collider>();
         }
 
         public void Interact()
@@ -20,14 +22,10 @@ namespace Components.Props
             if (!isOpen)
             {
                 animator.Play("Open");
+                audioSource.Play();
+                isOpen = !isOpen;
+                boxCollider.enabled = false;
             }
-            else
-            {
-                animator.Play("Close");
-            }
-
-            audioSource.Play();
-            isOpen = !isOpen;
         }
     }
 }
