@@ -21,6 +21,14 @@ namespace Components.Player
         public event Action<float> OnBatteryLevelChanged;
 
         private InputService _input;
+        private DiContainer _container;
+        private PlayerInventory _inventory;
+
+        [Inject]
+        private void Construct(DiContainer container)
+        {
+            _container = container;
+        }
 
         [Inject]
         private void Construct(InputService inputService)
@@ -30,6 +38,7 @@ namespace Components.Player
 
         private void Start()
         {
+            _inventory = _container.Resolve<PlayerInventory>();
             BatteryLevel = _batteryCapacity;
             _flashlight.enabled = false;
             NotifyBatteryChange();
@@ -40,6 +49,12 @@ namespace Components.Player
             if (_input.Light)
             {
                 Toggle();
+            }
+
+            if (_input.ReloadBatarey && BatteryLevel < _batteryCapacity && _inventory.GetBatteryCount() > 0)
+            {
+                _inventory.UseBattery();
+                Recharge(_batteryCapacity);
             }
 
             if (IsOn)

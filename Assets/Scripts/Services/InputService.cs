@@ -15,7 +15,7 @@ namespace Services
         public bool Crouch => Input.GetKey(KeyCode.LeftControl);
         public bool Sprint => Input.GetKey(KeyCode.LeftShift);
         public bool MedicineChest => Input.GetKeyDown(KeyCode.Alpha1);
-        public bool Pistol => Input.GetKeyDown(KeyCode.Alpha2);
+        public bool ReloadBatarey => Input.GetKeyDown(KeyCode.R);
         public bool Rifle => Input.GetKeyDown(KeyCode.Alpha3);
         public bool Shotgun => Input.GetKeyDown(KeyCode.Alpha4);
     }
