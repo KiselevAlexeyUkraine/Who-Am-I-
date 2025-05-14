@@ -1,30 +1,57 @@
 using UnityEngine;
 using Components.Interaction;
+using Components.Items;
+using Components.Player;
+using Zenject;
 
 namespace Components.Props
 {
     public class Door : MonoBehaviour, IInteractable
     {
-        private Animator animator;
-        private AudioSource audioSource;
+        [Header("Key Settings")]
+        [SerializeField] private bool _useKey = true;
+        [SerializeField] private KeyType requiredKey = KeyType.Red;
+        [SerializeField] private AudioClip _closeDoor;
+
+        private Animator _animator;
+        private AudioSource _audioSource;
         private bool isOpen;
-        private Collider boxCollider;
+
+        private DiContainer _container;
+        private PlayerInventory _inventory;
+
+        [Inject]
+        private void Construct(DiContainer container)
+        {
+            _container = container;
+        }
 
         private void Start()
         {
-            animator = GetComponent<Animator>();
-            audioSource = GetComponent<AudioSource>();
-            boxCollider = GetComponent<Collider>();
+            _inventory = _container.Resolve<PlayerInventory>();
+            _animator = GetComponent<Animator>();
+            _audioSource = GetComponent<AudioSource>();
         }
 
         public void Interact()
         {
-            if (!isOpen)
+            if (isOpen)
+                return;
+
+            if (!_useKey || (_useKey && _inventory.HasKey(requiredKey)))
             {
-                animator.Play("Open");
-                audioSource.Play();
-                isOpen = !isOpen;
-                boxCollider.enabled = false;
+                if (_useKey)
+                    _inventory.UseKey(requiredKey);
+
+                _animator.Play("Open");
+                _audioSource?.Play();
+                isOpen = true;
+                gameObject.tag = "Untagged";
+            }
+            else
+            {
+                Debug.Log("Key required: " + requiredKey);
+                _audioSource?.PlayOneShot(_closeDoor);
             }
         }
     }
