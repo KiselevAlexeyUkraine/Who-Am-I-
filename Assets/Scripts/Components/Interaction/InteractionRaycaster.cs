@@ -2,6 +2,7 @@ using UnityEngine;
 using Services;
 using Zenject;
 using Components.Player;
+using Components.Items;
 
 namespace Components.Interaction
 {
@@ -34,8 +35,6 @@ namespace Components.Interaction
         {
             _camera = Camera.main;
             _inventory = _container.Resolve<PlayerInventory>();
-
-
             OnCrosshairChange?.Invoke(0);
         }
 
@@ -62,32 +61,30 @@ namespace Components.Interaction
                         _inventory?.AddMedkit();
                         Destroy(target);
                     }
-
                     else if (lowerName.Contains("battery"))
                     {
                         _inventory?.AddBattery();
                         Destroy(target);
                     }
-                    else if (_input.Action)
-                    {
-                        IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-                        interactable?.Interact();
-                    }
-
                     else if (lowerName.Contains("red key"))
                     {
-                        //_inventory?.AddKey(KeyType.Red);
+                        _inventory?.AddKey(KeyType.Red);
                         Destroy(target);
                     }
                     else if (lowerName.Contains("blue key"))
                     {
-                        //_inventory?.AddKey(KeyType.Blue);
+                        _inventory?.AddKey(KeyType.Blue);
                         Destroy(target);
                     }
                     else if (lowerName.Contains("yellow key"))
                     {
-                        //_inventory?.AddKey(KeyType.Yellow);
+                        _inventory?.AddKey(KeyType.Yellow);
                         Destroy(target);
+                    }
+                    else
+                    {
+                        IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+                        interactable?.Interact();
                     }
                 }
             }
