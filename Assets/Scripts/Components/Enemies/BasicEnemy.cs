@@ -14,28 +14,43 @@ namespace Components.Enemies
             base.Start();
             OnSeePlayer += HandleSeePlayer;
             OnLosePlayer += HandleLosePlayer;
+            OnIdle += HandleIdle;
+            OnAttack += HandleAttack;
+            OnWalk += HandleWalk;
         }
 
         private void OnDestroy()
         {
             OnSeePlayer -= HandleSeePlayer;
             OnLosePlayer -= HandleLosePlayer;
+            OnIdle -= HandleIdle;
+            OnAttack -= HandleAttack;
+            OnWalk -= HandleWalk;
         }
 
         private void HandleSeePlayer()
         {
-            if (_animator != null)
-            {
-                _animator.SetBool("IsChasing", true);
-            }
+            _animator?.Play("Chase");
         }
 
         private void HandleLosePlayer()
         {
-            if (_animator != null)
-            {
-                _animator.SetBool("IsChasing", false);
-            }
+            _animator?.Play("Idle");
+        }
+
+        private void HandleIdle()
+        {
+            _animator?.Play("Idle");
+        }
+
+        private void HandleWalk()
+        {
+            _animator?.Play("Walk");
+        }
+
+        private void HandleAttack()
+        {
+            _animator?.Play("Attack");
         }
 
         public override EnemyType GetEnemyType() => EnemyType.Basic;

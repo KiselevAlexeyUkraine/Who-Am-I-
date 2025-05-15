@@ -1,5 +1,5 @@
+// Modified EnemyBase.cs
 using System;
-using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -13,6 +13,9 @@ namespace Components.Enemies
     {
         public event Action OnSeePlayer;
         public event Action OnLosePlayer;
+        public event Action OnIdle;
+        public event Action OnAttack;
+        public event Action OnWalk;
 
         [Header("Movement")]
         [SerializeField] protected Transform[] _patrolPoints;
@@ -22,13 +25,18 @@ namespace Components.Enemies
 
         [Header("Detection")]
         [SerializeField] protected float _chaseDistance = 15f;
-        [SerializeField] protected float _viewAngle = 90f;
+        [SerializeField] private float DefaultViewAngle = 90f;
+
         [SerializeField] protected float _stopChaseDistance = 2f;
         [SerializeField] protected float _postLoseWaitTime = 2f;
+        [SerializeField] protected float _waitBeforeNextPatrolPoint = 1f;
         [SerializeField] protected LayerMask _playerLayer;
         [SerializeField] protected LayerMask _obstacleLayers;
         [SerializeField] protected Transform _viewOrigin;
         [SerializeField] protected bool _debug = true;
+
+        protected float _viewAngle;
+        private const float ChaseViewAngle = 360f;
 
         protected Transform _player;
         protected NavMeshAgent _agent;
@@ -38,6 +46,8 @@ namespace Components.Enemies
 
         private int _currentPatrolIndex;
         private bool _playerVisible;
+        private bool _isAttacking;
+        private bool _isWaitingAtPatrol;
 
         [Inject]
         private void Construct(PlayerComponent player)
@@ -49,8 +59,8 @@ namespace Components.Enemies
         {
             _agent = GetComponent<NavMeshAgent>();
             _agent.speed = _moveSpeed;
-
             _token = gameObject.GetCancellationTokenOnDestroy();
+            _viewAngle = DefaultViewAngle;
             PatrolLoop().Forget();
         }
 
@@ -62,46 +72,64 @@ namespace Components.Enemies
 
                 if (_isChasing)
                 {
-                    if (_agent.speed != _chaseSpeed)
-                        _agent.speed = _chaseSpeed;
+                    _agent.speed = _chaseSpeed;
+                    _viewAngle = ChaseViewAngle;
 
                     float distanceToPlayer = Vector3.Distance(transform.position, _player.position);
+
+                    RotateTowardsPlayer();
 
                     if (!_playerVisible)
                     {
                         _isChasing = false;
                         _agent.ResetPath();
                         _agent.speed = _moveSpeed;
+                        _viewAngle = DefaultViewAngle;
                         OnLosePlayer?.Invoke();
                         if (_debug) Debug.Log("[Enemy] Lost player");
 
                         _waitingAfterLostPlayer = true;
+                        OnIdle?.Invoke();
+
                         await UniTask.Delay(TimeSpan.FromSeconds(_postLoseWaitTime), cancellationToken: _token);
+
+                        RotateTowardsLastKnownPlayer();
+
+                        OnWalk?.Invoke();
                         _waitingAfterLostPlayer = false;
+                        _isAttacking = false;
+                    }
+                    else if (distanceToPlayer > _stopChaseDistance)
+                    {
+                        if (_isAttacking)
+                        {
+                            _isAttacking = false;
+                            OnSeePlayer?.Invoke();
+                            if (_debug) Debug.Log("[Enemy] Back to Chase from Attack");
+                        }
+
+                        _agent.isStopped = false;
+                        _agent.SetDestination(_player.position);
                     }
                     else
                     {
-                        RotateTowardsPlayer();
-
-                        if (distanceToPlayer > _stopChaseDistance)
+                        if (!_isAttacking)
                         {
-                            _agent.isStopped = false;
-                            _agent.SetDestination(_player.position);
-                        }
-                        else
-                        {
+                            _isAttacking = true;
                             _agent.isStopped = true;
+                            OnAttack?.Invoke();
+                            if (_debug) Debug.Log("[Enemy] Attack!");
                         }
                     }
                 }
                 else
                 {
-                    if (!_waitingAfterLostPlayer)
-                    {
-                        if (_agent.speed != _moveSpeed)
-                            _agent.speed = _moveSpeed;
+                    _viewAngle = DefaultViewAngle;
 
-                        Patrol();
+                    if (!_waitingAfterLostPlayer && !_isWaitingAtPatrol)
+                    {
+                        _agent.speed = _moveSpeed;
+                        await Patrol();
 
                         if (_playerVisible)
                         {
@@ -112,18 +140,41 @@ namespace Components.Enemies
                         }
                     }
                 }
+
                 await UniTask.Yield(PlayerLoopTiming.Update, _token);
             }
         }
 
-        protected virtual void Patrol()
+        protected virtual async UniTask Patrol()
         {
             if (_patrolPoints.Length == 0) return;
 
             if (!_agent.hasPath || _agent.remainingDistance < 0.5f)
             {
+                _isWaitingAtPatrol = true;
+                OnIdle?.Invoke();
+
+                float elapsed = 0f;
+                while (elapsed < _waitBeforeNextPatrolPoint)
+                {
+                    RotateTowardsNextPatrolPoint();
+                    await UniTask.Yield(PlayerLoopTiming.Update, _token);
+                    elapsed += Time.deltaTime;
+                }
+
+                OnWalk?.Invoke();
+
+                Vector3 direction = (_patrolPoints[_currentPatrolIndex].position - transform.position).normalized;
+                direction.y = 0f;
+                if (direction != Vector3.zero)
+                {
+                    Quaternion targetRotation = Quaternion.LookRotation(direction);
+                    transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime * 100f);
+                }
+
                 _agent.SetDestination(_patrolPoints[_currentPatrolIndex].position);
                 _currentPatrolIndex = (_currentPatrolIndex + 1) % _patrolPoints.Length;
+                _isWaitingAtPatrol = false;
             }
         }
 
@@ -141,10 +192,7 @@ namespace Components.Enemies
 
             if (Physics.Raycast(origin, directionToPlayer.normalized, out var hit, _chaseDistance, _playerLayer | _obstacleLayers))
             {
-                if (hit.transform == _player)
-                {
-                    return true;
-                }
+                if (hit.transform == _player) return true;
             }
             return false;
         }
@@ -152,6 +200,28 @@ namespace Components.Enemies
         private void RotateTowardsPlayer()
         {
             Vector3 direction = (_player.position - transform.position).normalized;
+            direction.y = 0f;
+            if (direction == Vector3.zero) return;
+
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime * 100f);
+        }
+
+        private void RotateTowardsLastKnownPlayer()
+        {
+            Vector3 direction = (_player.position - transform.position).normalized;
+            direction.y = 0f;
+            if (direction == Vector3.zero) return;
+
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime * 100f);
+        }
+
+        private void RotateTowardsNextPatrolPoint()
+        {
+            if (_patrolPoints.Length == 0) return;
+
+            Vector3 direction = (_patrolPoints[_currentPatrolIndex].position - transform.position).normalized;
             direction.y = 0f;
             if (direction == Vector3.zero) return;
 
