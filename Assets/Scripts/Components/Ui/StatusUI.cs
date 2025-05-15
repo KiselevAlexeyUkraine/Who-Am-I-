@@ -5,11 +5,11 @@ using Components.Player;
 
 namespace Components.Ui
 {
-    public class StatusUI : MonoBehaviour
+    public class StaminaUI : MonoBehaviour
     {
         [Header("UI Reference")]
         [SerializeField] private Image _staminaBar;
-        [SerializeField] private Image _healthBar;
+        [SerializeField] private Image _healthBar; // Health UI
 
         private DiContainer _container;
         private PlayerControls _playerControls;
