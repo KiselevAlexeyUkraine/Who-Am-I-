@@ -12,6 +12,10 @@ namespace Components.Interaction
         [SerializeField] private float _rayDistance = 3f;
         [SerializeField] private LayerMask _interactableLayer;
 
+        [Header("Pickup Settings")]
+        [SerializeField] private Transform _holdPoint;
+        [SerializeField] private string _heldLayerName = "Held"; // Имя слоя задаётся в инспекторе
+
         public static event System.Action<int> OnCrosshairChange;
 
         private Camera _camera;
@@ -19,15 +23,15 @@ namespace Components.Interaction
         private PlayerInventory _inventory;
         private DiContainer _container;
 
-        [Inject]
-        private void Construct(InputService input)
-        {
-            _input = input;
-        }
+        private Transform _heldItem;
+        private Rigidbody _heldItemRb;
+        private int _originalLayer;
+        private Collider _disabledCollider;
 
         [Inject]
-        private void Construct(DiContainer container)
+        private void Construct(InputService input, DiContainer container)
         {
+            _input = input;
             _container = container;
         }
 
@@ -40,58 +44,105 @@ namespace Components.Interaction
 
         private void Update()
         {
+            if (_heldItem != null)
+            {
+                _heldItem.position = _holdPoint.position;
+            }
+
+            if (_heldItem != null && _input.PickupReleased)
+            {
+                DropItem();
+                return;
+            }
+
             if (!Physics.Raycast(_camera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0)), out var hit, _rayDistance, _interactableLayer))
             {
                 OnCrosshairChange?.Invoke(0);
                 return;
             }
 
-            var target = hit.collider.gameObject;
+            GameObject target = hit.collider.gameObject;
+            OnCrosshairChange?.Invoke(1);
 
-            if (target.CompareTag("Item"))
+            if (target.CompareTag("Draggable") && _input.PickupPressed && _heldItem == null)
             {
-                OnCrosshairChange?.Invoke(1);
+                TryPickup(hit.collider);
+                return;
+            }
 
-                if (_input.Action)
+            if (_input.Action)
+            {
+                string lowerName = target.name.ToLower();
+
+                if (lowerName.Contains("health"))
                 {
-                    string lowerName = target.name.ToLower();
-
-                    if (lowerName.Contains("health"))
-                    {
-                        _inventory?.AddMedkit();
-                        Destroy(target);
-                    }
-                    else if (lowerName.Contains("battery"))
-                    {
-                        _inventory?.AddBattery();
-                        Destroy(target);
-                    }
-                    else if (lowerName.Contains("red key"))
-                    {
-                        _inventory?.AddKey(KeyType.Red);
-                        Destroy(target);
-                    }
-                    else if (lowerName.Contains("blue key"))
-                    {
-                        _inventory?.AddKey(KeyType.Blue);
-                        Destroy(target);
-                    }
-                    else if (lowerName.Contains("yellow key"))
-                    {
-                        _inventory?.AddKey(KeyType.Yellow);
-                        Destroy(target);
-                    }
-                    else
-                    {
-                        IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-                        interactable?.Interact();
-                    }
+                    _inventory?.AddMedkit();
+                    Destroy(target);
+                }
+                else if (lowerName.Contains("battery"))
+                {
+                    _inventory?.AddBattery();
+                    Destroy(target);
+                }
+                else if (lowerName.Contains("red key"))
+                {
+                    _inventory?.AddKey(KeyType.Red);
+                    Destroy(target);
+                }
+                else if (lowerName.Contains("blue key"))
+                {
+                    _inventory?.AddKey(KeyType.Blue);
+                    Destroy(target);
+                }
+                else if (lowerName.Contains("yellow key"))
+                {
+                    _inventory?.AddKey(KeyType.Yellow);
+                    Destroy(target);
+                }
+                else
+                {
+                    IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+                    interactable?.Interact();
                 }
             }
-            else
+        }
+
+        private void TryPickup(Collider collider)
+        {
+            if (collider.attachedRigidbody == null) return;
+
+            _heldItemRb = collider.attachedRigidbody;
+            _heldItemRb.isKinematic = true;
+
+            _heldItem = _heldItemRb.transform;
+            _heldItem.parent = _holdPoint;
+
+            _originalLayer = _heldItem.gameObject.layer;
+            int heldLayer = LayerMask.NameToLayer(_heldLayerName);
+            if (heldLayer != -1)
             {
-                OnCrosshairChange?.Invoke(0);
+                _heldItem.gameObject.layer = heldLayer;
             }
+
+            _disabledCollider = collider;
+            _disabledCollider.enabled = false;
+        }
+
+        private void DropItem()
+        {
+            _heldItem.parent = null;
+            _heldItemRb.isKinematic = false;
+
+            _heldItem.gameObject.layer = _originalLayer;
+
+            if (_disabledCollider != null)
+            {
+                _disabledCollider.enabled = true;
+            }
+
+            _heldItem = null;
+            _heldItemRb = null;
+            _disabledCollider = null;
         }
     }
 }
