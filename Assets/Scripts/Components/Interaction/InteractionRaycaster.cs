@@ -14,7 +14,8 @@ namespace Components.Interaction
 
         [Header("Pickup Settings")]
         [SerializeField] private Transform _holdPoint;
-        [SerializeField] private string _heldLayerName = "Held"; // Имя слоя задаётся в инспекторе
+        [SerializeField] private string _heldLayerName = "Held";
+        [SerializeField] private Vector3 _pickupRotationEuler = Vector3.zero;
 
         public static event System.Action<int> OnCrosshairChange;
 
@@ -112,10 +113,12 @@ namespace Components.Interaction
             if (collider.attachedRigidbody == null) return;
 
             _heldItemRb = collider.attachedRigidbody;
-            _heldItemRb.isKinematic = true;
-
             _heldItem = _heldItemRb.transform;
+
             _heldItem.parent = _holdPoint;
+            _heldItem.localRotation = Quaternion.Euler(_pickupRotationEuler);
+
+            _heldItemRb.isKinematic = true;
 
             _originalLayer = _heldItem.gameObject.layer;
             int heldLayer = LayerMask.NameToLayer(_heldLayerName);
@@ -131,8 +134,20 @@ namespace Components.Interaction
         private void DropItem()
         {
             _heldItem.parent = null;
-            _heldItemRb.isKinematic = false;
 
+            // Локальная позиция holdPoint относительно игрока
+            Vector3 localOffset = transform.InverseTransformPoint(_holdPoint.position);
+
+            // Обнуляем Y и Z, чтобы предмет оказался под игроком
+            Vector3 localDropOffset = localOffset;
+            localDropOffset.y = 0f;
+            localDropOffset.z = 0f;
+
+            // Переводим в мировую позицию
+            Vector3 worldDropPosition = transform.TransformPoint(localDropOffset);
+            _heldItem.position = worldDropPosition;
+
+            _heldItemRb.isKinematic = false;
             _heldItem.gameObject.layer = _originalLayer;
 
             if (_disabledCollider != null)
