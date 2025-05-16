@@ -118,7 +118,8 @@ namespace Components.Enemies
                     }
                     else
                     {
-                        if (!_isAttacking)
+                        // Only enter attack if player is visible
+                        if (!_isAttacking && _playerVisible)
                         {
                             _isAttacking = true;
                             _agent.isStopped = true;

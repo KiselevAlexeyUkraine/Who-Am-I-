@@ -417,7 +417,7 @@ MonoBehaviour:
   _ceilCheckerTransform: {fileID: 399605628030573610}
   _groundLayer:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 193
   _checkerRadius: 0.18
 --- !u!114 &664214233681919601
 MonoBehaviour:

@@ -77,7 +77,9 @@ namespace Components.Enemies
         public void PerformAttack()
         {
             Vector3 origin = _viewOrigin != null ? _viewOrigin.position : transform.position;
-            Vector3 direction = transform.forward;
+
+            Vector3 targetPoint = _player.position + Vector3.up * 1.2f; // прицельная точка (грудь)
+            Vector3 direction = (targetPoint - origin).normalized;
 
             RaycastHit[] hits = Physics.RaycastAll(origin, direction, _attackRange, ~0);
 
