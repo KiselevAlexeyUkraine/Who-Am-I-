@@ -39,18 +39,20 @@ namespace Components.Enemies
 
         public override EnemyType GetEnemyType() => EnemyType.Basic;
 
-        // Call this from animation event
         public void PerformAttack()
         {
             Vector3 origin = _viewOrigin != null ? _viewOrigin.position : transform.position;
             Vector3 direction = transform.forward;
 
-            if (Physics.Raycast(origin, direction, out RaycastHit hit, _attackRange, _playerLayer))
+            RaycastHit[] hits = Physics.RaycastAll(origin, direction, _attackRange, ~0);
+
+            foreach (var hit in hits)
             {
                 if (hit.collider.TryGetComponent<IDamageable>(out var damageable))
                 {
                     damageable.TakeDamage(_damageAmount);
-                    Debug.Log("Попали по игроку");
+                    Debug.Log($"Ударили сквозь препятствия: {hit.collider.name}");
+                    break;
                 }
             }
 
@@ -58,5 +60,6 @@ namespace Components.Enemies
             Debug.DrawRay(origin, direction * _attackRange, Color.red, 0.5f);
 #endif
         }
+
     }
 }

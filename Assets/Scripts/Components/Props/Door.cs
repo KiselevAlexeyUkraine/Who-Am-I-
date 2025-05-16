@@ -46,7 +46,7 @@ namespace Components.Props
                 _animator.Play("Open");
                 _audioSource?.Play();
                 isOpen = true;
-                gameObject.tag = "Untagged";
+                gameObject.layer = LayerMask.NameToLayer("Default");
             }
             else
             {

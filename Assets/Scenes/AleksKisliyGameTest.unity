@@ -742,7 +742,7 @@ NavMeshObstacle:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 317795461}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Shape: 1
   m_Extents: {x: 0.5, y: 0.5, z: 0.5}
@@ -1788,11 +1788,11 @@ MonoBehaviour:
     m_Bits: 8
   _obstacleLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   _viewOrigin: {fileID: 1055791894}
   _debug: 1
   _animator: {fileID: 709209425}
-  _attackRange: 1.5
+  _attackRange: 3
   _damageAmount: 10
 --- !u!195 &709209419
 NavMeshAgent:
@@ -2232,8 +2232,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 4, z: 0.5}
-  m_Center: {x: -0.8, y: 2.2, z: 0.36}
+  m_Size: {x: 5.5, y: 4, z: 0.5}
+  m_Center: {x: 0.5, y: 2.2, z: 0.36}
 --- !u!82 &816644664
 AudioSource:
   m_ObjectHideFlags: 0
