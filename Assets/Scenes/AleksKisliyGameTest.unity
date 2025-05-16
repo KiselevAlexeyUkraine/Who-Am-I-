@@ -742,7 +742,7 @@ NavMeshObstacle:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 317795461}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Shape: 1
   m_Extents: {x: 0.5, y: 0.5, z: 0.5}
@@ -1783,6 +1783,7 @@ MonoBehaviour:
   _stopChaseDistance: 3
   _postLoseWaitTime: 2
   _waitBeforeNextPatrolPoint: 2
+  _chaseMemoryDuration: 3
   _playerLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -1794,6 +1795,7 @@ MonoBehaviour:
   _animator: {fileID: 709209425}
   _attackRange: 3
   _damageAmount: 10
+  _chaseTimeout: 3
 --- !u!195 &709209419
 NavMeshAgent:
   m_ObjectHideFlags: 0

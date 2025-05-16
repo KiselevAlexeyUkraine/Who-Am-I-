@@ -12,6 +12,12 @@ namespace Components.Enemies
         [SerializeField] private float _attackRange = 1.5f;
         [SerializeField] private int _damageAmount = 10;
 
+        [Header("Chase Settings")]
+        [SerializeField] private float _chaseTimeout = 3f;
+
+        private float _chaseTimer;
+        private bool _isPlayerVisible;
+
         protected override void Start()
         {
             base.Start();
@@ -31,8 +37,37 @@ namespace Components.Enemies
             OnWalk -= HandleWalk;
         }
 
-        private void HandleSeePlayer() => _animator?.Play("Chase");
-        private void HandleLosePlayer() => _animator?.Play("Idle");
+        private void Update()
+        {
+            if (_isPlayerVisible)
+            {
+                _chaseTimer = _chaseTimeout;
+            }
+            else
+            {
+                if (_chaseTimer > 0)
+                {
+                    _chaseTimer -= Time.deltaTime;
+                    if (_chaseTimer <= 0f)
+                    {
+                        base.LosePlayer(); // вручную вызвать смену состояния
+                    }
+                }
+            }
+        }
+
+        private void HandleSeePlayer()
+        {
+            _isPlayerVisible = true;
+            _animator?.Play("Chase");
+        }
+
+        private void HandleLosePlayer()
+        {
+            _isPlayerVisible = false;
+            // не вызываем анимацию, ждём таймер
+        }
+
         private void HandleIdle() => _animator?.Play("Idle");
         private void HandleWalk() => _animator?.Play("Walk");
         private void HandleAttack() => _animator?.Play("Attack");
@@ -60,6 +95,5 @@ namespace Components.Enemies
             Debug.DrawRay(origin, direction * _attackRange, Color.red, 0.5f);
 #endif
         }
-
     }
 }

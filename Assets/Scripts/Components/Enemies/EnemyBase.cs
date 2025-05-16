@@ -1,4 +1,3 @@
-// Modified EnemyBase.cs
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -26,10 +25,10 @@ namespace Components.Enemies
         [Header("Detection")]
         [SerializeField] protected float _chaseDistance = 15f;
         [SerializeField] private float DefaultViewAngle = 90f;
-
         [SerializeField] protected float _stopChaseDistance = 2f;
         [SerializeField] protected float _postLoseWaitTime = 2f;
         [SerializeField] protected float _waitBeforeNextPatrolPoint = 1f;
+        [SerializeField] protected float _chaseMemoryDuration = 3f;
         [SerializeField] protected LayerMask _playerLayer;
         [SerializeField] protected LayerMask _obstacleLayers;
         [SerializeField] protected Transform _viewOrigin;
@@ -44,6 +43,7 @@ namespace Components.Enemies
         protected bool _isChasing;
         protected bool _waitingAfterLostPlayer;
 
+        private float _chaseMemoryTimer = 0f;
         private int _currentPatrolIndex;
         private bool _playerVisible;
         private bool _isAttacking;
@@ -77,16 +77,21 @@ namespace Components.Enemies
 
                     float distanceToPlayer = Vector3.Distance(transform.position, _player.position);
 
+                    if (_playerVisible)
+                        _chaseMemoryTimer = _chaseMemoryDuration;
+                    else
+                        _chaseMemoryTimer -= Time.deltaTime;
+
                     RotateTowardsPlayer();
 
-                    if (!_playerVisible)
+                    if (_chaseMemoryTimer <= 0f)
                     {
                         _isChasing = false;
                         _agent.ResetPath();
                         _agent.speed = _moveSpeed;
                         _viewAngle = DefaultViewAngle;
-                        OnLosePlayer?.Invoke();
-                        if (_debug) Debug.Log("[Enemy] Lost player");
+                        LosePlayer();
+                        if (_debug) Debug.Log("[Enemy] Lost player after memory");
 
                         _waitingAfterLostPlayer = true;
                         OnIdle?.Invoke();
@@ -94,8 +99,8 @@ namespace Components.Enemies
                         await UniTask.Delay(TimeSpan.FromSeconds(_postLoseWaitTime), cancellationToken: _token);
 
                         RotateTowardsLastKnownPlayer();
-
                         OnWalk?.Invoke();
+
                         _waitingAfterLostPlayer = false;
                         _isAttacking = false;
                     }
@@ -134,6 +139,7 @@ namespace Components.Enemies
                         if (_playerVisible)
                         {
                             _isChasing = true;
+                            _chaseMemoryTimer = _chaseMemoryDuration;
                             _agent.isStopped = false;
                             OnSeePlayer?.Invoke();
                             if (_debug) Debug.Log("[Enemy] Saw player");
@@ -257,6 +263,11 @@ namespace Components.Enemies
                 Gizmos.color = Color.green;
                 Gizmos.DrawLine(_viewOrigin.position, _player.position);
             }
+        }
+
+        public virtual void LosePlayer()
+        {
+            OnLosePlayer?.Invoke();
         }
 
         public abstract EnemyType GetEnemyType();
