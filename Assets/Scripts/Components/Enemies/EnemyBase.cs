@@ -31,6 +31,7 @@ namespace Components.Enemies
         [SerializeField] protected float _chaseMemoryDuration = 3f;
         [SerializeField] protected LayerMask _playerLayer;
         [SerializeField] protected LayerMask _obstacleLayers;
+        [SerializeField] private LayerMask _ignoreWhileChasing;
         [SerializeField] protected Transform _viewOrigin;
         [SerializeField] protected bool _debug = true;
 
@@ -68,7 +69,7 @@ namespace Components.Enemies
         {
             while (true)
             {
-                _playerVisible = CanSeePlayer();
+                _playerVisible = CanSeePlayer(_isChasing);
 
                 if (_isChasing)
                 {
@@ -118,7 +119,6 @@ namespace Components.Enemies
                     }
                     else
                     {
-                        // Only enter attack if player is visible
                         if (!_isAttacking && _playerVisible)
                         {
                             _isAttacking = true;
@@ -185,7 +185,7 @@ namespace Components.Enemies
             }
         }
 
-        protected bool CanSeePlayer()
+        protected bool CanSeePlayer(bool ignoreObstacles)
         {
             if (_player == null) return false;
 
@@ -197,10 +197,15 @@ namespace Components.Enemies
             float angle = Vector3.Angle(_viewOrigin.forward, directionToPlayer);
             if (angle > _viewAngle / 2f) return false;
 
-            if (Physics.Raycast(origin, directionToPlayer.normalized, out var hit, _chaseDistance, _playerLayer | _obstacleLayers))
+            LayerMask checkMask = _playerLayer | _obstacleLayers;
+            if (ignoreObstacles)
+                checkMask &= ~_ignoreWhileChasing;
+
+            if (Physics.Raycast(origin, directionToPlayer.normalized, out var hit, _chaseDistance, checkMask))
             {
                 if (hit.transform == _player) return true;
             }
+
             return false;
         }
 
