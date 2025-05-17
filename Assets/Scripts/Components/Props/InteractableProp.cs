@@ -9,7 +9,7 @@ namespace Components.Props
         [Header("Prop Settings")]
         [SerializeField] private PropType propType;
         [SerializeField] private Transform targetTransform;
-        [SerializeField] private float rotationAngle = 90f; // угол вращения по Y
+        [SerializeField] private float rotationAngle = 90f; // угол вращения по Y используеться для дверцев
         [SerializeField] private float moveDistance = 1f;   // используется для Shelf
         [SerializeField] private float animationDuration = 0.5f;
 
