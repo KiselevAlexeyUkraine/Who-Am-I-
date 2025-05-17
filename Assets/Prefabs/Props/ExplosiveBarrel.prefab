@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9168143089332646094}
   - component: {fileID: 3949632161696079117}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Audio Source
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -141,7 +141,7 @@ GameObject:
   - component: {fileID: 3008127149412836331}
   - component: {fileID: 8879949066539375821}
   - component: {fileID: 7474223529488922267}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: ExplosiveBarrel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -172,7 +172,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2196758990489967319}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: c3a9c62057227834ca5933583b32a0e6, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -288,6 +288,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 2c46cd6c8da5e68429fce6e61f843238, type: 3}
       propertyPath: m_Name
       value: barrel
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2c46cd6c8da5e68429fce6e61f843238, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

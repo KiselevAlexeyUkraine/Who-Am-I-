@@ -15,6 +15,10 @@ namespace Components.Enemies
         public event Action OnIdle;
         public event Action OnAttack;
         public event Action OnWalk;
+        public event Action OnDeath;
+
+        [Header("Stats")]
+        [SerializeField] protected int _maxHealth = 100;
 
         [Header("Movement")]
         [SerializeField] protected Transform[] _patrolPoints;
@@ -43,6 +47,7 @@ namespace Components.Enemies
         protected CancellationToken _token;
         protected bool _isChasing;
         protected bool _waitingAfterLostPlayer;
+        protected bool _isDead;
 
         private float _chaseMemoryTimer = 0f;
         private int _currentPatrolIndex;
@@ -65,11 +70,38 @@ namespace Components.Enemies
             PatrolLoop().Forget();
         }
 
+        protected void MarkDead()
+        {
+            if (_debug) Debug.Log("[Enemy] Died");
+
+            _isDead = true;
+
+            OnDeath?.Invoke();
+
+            if (_agent != null)
+            {
+                _agent.isStopped = true;
+                _agent.ResetPath();
+                _agent.enabled = false;
+            }
+            
+            var rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = false;
+            }
+
+            enabled = false;
+        }
+
         private async UniTaskVoid PatrolLoop()
         {
             while (true)
             {
+                if (_isDead) break;
+
                 _playerVisible = CanSeePlayer(_isChasing);
+                if (_isDead) break;
 
                 if (_playerVisible)
                 {
@@ -107,6 +139,7 @@ namespace Components.Enemies
                         _chaseMemoryTimer -= Time.deltaTime;
 
                     RotateTowardsPlayer();
+                    if (_isDead) break;
 
                     if (_chaseMemoryTimer <= 0f)
                     {
@@ -123,9 +156,13 @@ namespace Components.Enemies
                         float rotateTime = 0f;
                         while (rotateTime < _postLoseWaitTime)
                         {
+                            if (_isDead) break;
+
                             transform.Rotate(Vector3.up * _rotationSpeed);
                             rotateTime += Time.deltaTime;
                             await UniTask.Yield(PlayerLoopTiming.Update, _token);
+
+                            if (_isDead) break;
 
                             _playerVisible = CanSeePlayer(false);
                             if (_playerVisible)
@@ -202,22 +239,30 @@ namespace Components.Enemies
 
         protected virtual async UniTask Patrol()
         {
+            if (_isDead) return;
+
             if (_patrolPoints.Length == 0) return;
 
             if (!_agent.hasPath || _agent.remainingDistance < 0.5f)
             {
+                if (_isDead) return;
+
                 _isWaitingAtPatrol = true;
                 OnIdle?.Invoke();
 
                 float elapsed = 0f;
                 while (elapsed < _waitBeforeNextPatrolPoint)
                 {
+                    if (_isDead) return;
+
                     if (CanSeePlayer(false)) return;
 
                     RotateTowardsNextPatrolPoint();
                     await UniTask.Yield(PlayerLoopTiming.Update, _token);
                     elapsed += Time.deltaTime;
                 }
+
+                if (_isDead) return;
 
                 OnWalk?.Invoke();
 
@@ -260,16 +305,6 @@ namespace Components.Enemies
         }
 
         private void RotateTowardsPlayer()
-        {
-            Vector3 direction = (_player.position - transform.position).normalized;
-            direction.y = 0f;
-            if (direction == Vector3.zero) return;
-
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime * 100f);
-        }
-
-        private void RotateTowardsLastKnownPlayer()
         {
             Vector3 direction = (_player.position - transform.position).normalized;
             direction.y = 0f;

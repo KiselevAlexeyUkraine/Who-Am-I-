@@ -5,7 +5,7 @@ using Zenject;
 
 namespace Components.Player
 {
-    [RequireComponent(typeof(CharacterController))]
+    [RequireComponent(typeof(Rigidbody))]
     public class PlayerControls : MonoBehaviour
     {
         public event Action OnJump;
@@ -21,8 +21,6 @@ namespace Components.Player
         [SerializeField] private float _moveSpeed = 5f;
         [SerializeField] private float _sprintMultiplier = 1.5f;
         [SerializeField] private float _jumpForce = 5f;
-        [SerializeField] private float _gravity = 9.81f;
-        [SerializeField] private float _fallMultiplier = 2.5f;
 
         [Header("Mouse Look Settings")]
         [SerializeField] private float _mouseSmoothTime = 0.1f;
@@ -41,22 +39,20 @@ namespace Components.Player
         [SerializeField] private float _staminaDrainSprinting = 10f;
         [SerializeField] private float _staminaSprintThreshold = 10f;
 
-        [Header("Ground and Ceil Check")]
+        [Header("Ground Check")]
         [SerializeField] private Transform _groundCheckerTransform;
-        [SerializeField] private Transform _ceilCheckerTransform;
         [SerializeField] private LayerMask _groundLayer;
         [SerializeField] private float _checkerRadius;
 
         private float _currentStamina;
         private bool _isStaminaExhausted;
-        private CharacterController _character;
+        private Rigidbody _rigidbody;
         private SettingsService _settings;
         private InputService _input;
         private PauseService _pause;
 
         private Vector2 _currentMouseDeltaVelocity;
         private Vector2 _currentMouseDelta;
-        private Vector3 _velocity;
         private float _xRotation;
         private bool _isCrouching;
         private Vector3 _motion;
@@ -71,7 +67,8 @@ namespace Components.Player
 
         private void Start()
         {
-            _character = GetComponent<CharacterController>();
+            _rigidbody = GetComponent<Rigidbody>();
+            _rigidbody.freezeRotation = true;
             _camera.fieldOfView = _settings.SavedFov;
             _currentStamina = _maxStamina;
             _isStaminaExhausted = false;
@@ -86,12 +83,16 @@ namespace Components.Player
                 return;
             }
 
-            Move();
-            ApplyGravity();
             MouseLook();
             Crouch();
             ChangeFov();
             UpdateStamina();
+        }
+
+        private void FixedUpdate()
+        {
+            if (_pause.IsPaused) return;
+            Move();
         }
 
         private void Move()
@@ -104,10 +105,17 @@ namespace Components.Player
             if (_motion.magnitude > 1f)
                 _motion.Normalize();
 
-            if (_motion.magnitude > 0.5f)
+            if (_motion.magnitude > 0.1f)
                 OnMove?.Invoke();
 
-            _character.Move(_motion * (speed * Time.deltaTime));
+            Vector3 velocity = _motion * speed;
+            _rigidbody.linearVelocity = new Vector3(velocity.x, _rigidbody.linearVelocity.y, velocity.z);
+
+            if (IsGrounded && _input.Jump && !_isCrouching)
+            {
+                _rigidbody.linearVelocity = new Vector3(_rigidbody.linearVelocity.x, _jumpForce, _rigidbody.linearVelocity.z);
+                OnJump?.Invoke();
+            }
         }
 
         private void UpdateStamina()
@@ -150,27 +158,6 @@ namespace Components.Player
             _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, fov, Time.deltaTime * _fovTransitionSpeed);
         }
 
-        private void ApplyGravity()
-        {
-            if (IsGrounded && _velocity.y < 0)
-            {
-                _velocity.y = -2f;
-            }
-
-            if (IsGrounded && _input.Jump && !_isCrouching)
-            {
-                _velocity.y = Mathf.Sqrt(_jumpForce * 2f * _gravity);
-                OnJump?.Invoke();
-            }
-
-            if (_velocity.y < 0)
-                _velocity.y -= _gravity * _fallMultiplier * Time.deltaTime;
-            else
-                _velocity.y -= _gravity * Time.deltaTime;
-
-            _character.Move(_velocity * Time.deltaTime);
-        }
-
         private void MouseLook()
         {
             var mouseX = _input.MouseX * _settings.SavedMouseSensitivity;
@@ -190,13 +177,12 @@ namespace Components.Player
 
         private void Crouch()
         {
-            _isCrouching = _input.Crouch || IsFloored;
+            _isCrouching = _input.Crouch;
 
             var targetHeight = _isCrouching ? _crouchHeight : _standHeight;
-            var center = _character.center;
-            center.y = Mathf.Lerp(center.y, targetHeight * 0.5f, Time.deltaTime * _crouchTransitionSpeed);
-            _character.height = Mathf.Lerp(_character.height, targetHeight, Time.deltaTime * _crouchTransitionSpeed);
-            _character.center = center;
+            var scale = transform.localScale;
+            scale.y = Mathf.Lerp(scale.y, targetHeight / _standHeight, Time.deltaTime * _crouchTransitionSpeed);
+            transform.localScale = scale;
 
             var cameraPosition = _camera.transform.localPosition;
             cameraPosition.y = Mathf.Lerp(cameraPosition.y, targetHeight, Time.deltaTime * _crouchTransitionSpeed);
@@ -204,18 +190,13 @@ namespace Components.Player
         }
 
         private bool IsGrounded =>
-            Physics.CheckSphere(_groundCheckerTransform.position, _checkerRadius, _groundLayer.value);
-
-        private bool IsFloored =>
-            Physics.CheckSphere(_ceilCheckerTransform.position, _checkerRadius, _groundLayer.value);
+            Physics.CheckSphere(_groundCheckerTransform.position, _checkerRadius, _groundLayer);
 
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(_groundCheckerTransform.position, _checkerRadius);
-            Gizmos.color = Color.green;
-            Gizmos.DrawSphere(_ceilCheckerTransform.position, _checkerRadius);
         }
 #endif
     }

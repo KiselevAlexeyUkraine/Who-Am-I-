@@ -1,12 +1,12 @@
 using UnityEngine;
-using Components.Player;
 
 namespace Components.Enemies
 {
-    public class BasicEnemy : EnemyBase
+    public class BasicEnemy : EnemyBase, IDamageable
     {
         [Header("Debug Actions")]
         [SerializeField] private Animator _animator;
+        [SerializeField] private AudioSource _source;
 
         [Header("Attack Settings")]
         [SerializeField] private float _attackRange = 1.5f;
@@ -17,15 +17,18 @@ namespace Components.Enemies
 
         private float _chaseTimer;
         private bool _isPlayerVisible;
+        private int _currentHealth;
 
         protected override void Start()
         {
             base.Start();
+            _currentHealth = _maxHealth;
             OnSeePlayer += HandleSeePlayer;
             OnLosePlayer += HandleLosePlayer;
             OnIdle += HandleIdle;
             OnAttack += HandleAttack;
             OnWalk += HandleWalk;
+            OnDeath += HandleDeath;
         }
 
         private void OnDestroy()
@@ -35,6 +38,7 @@ namespace Components.Enemies
             OnIdle -= HandleIdle;
             OnAttack -= HandleAttack;
             OnWalk -= HandleWalk;
+            OnDeath -= HandleDeath;
         }
 
         private void Update()
@@ -50,35 +54,46 @@ namespace Components.Enemies
                     _chaseTimer -= Time.deltaTime;
                     if (_chaseTimer <= 0f)
                     {
-                        base.LosePlayer(); // вручную вызвать смену состояния
+                        base.LosePlayer();
                     }
                 }
             }
         }
 
-        private void HandleSeePlayer()
+        public void TakeDamage(int amount)
         {
-            _isPlayerVisible = true;
-            _animator?.Play("Chase");
+            if (_isDead) return;
+
+            _currentHealth -= amount;
+            if (_currentHealth <= 0)
+            {
+                Die();
+            }
         }
 
-        private void HandleLosePlayer()
+        private void Die()
         {
-            _isPlayerVisible = false;
-            // не вызываем анимацию, ждём таймер
+            MarkDead();
         }
 
+        private void HandleSeePlayer() => _animator?.Play("Chase");
+        private void HandleLosePlayer() => _isPlayerVisible = false;
         private void HandleIdle() => _animator?.Play("Idle");
         private void HandleWalk() => _animator?.Play("Walk");
         private void HandleAttack() => _animator?.Play("Attack");
+
+        private void HandleDeath()
+        {
+            _animator.enabled = false;
+            _source.enabled = false;
+        }
 
         public override EnemyType GetEnemyType() => EnemyType.Basic;
 
         public void PerformAttack()
         {
             Vector3 origin = _viewOrigin != null ? _viewOrigin.position : transform.position;
-
-            Vector3 targetPoint = _player.position + Vector3.up * 1.2f; // прицельная точка (грудь)
+            Vector3 targetPoint = _player.position + Vector3.up * 1.2f;
             Vector3 direction = (targetPoint - origin).normalized;
 
             RaycastHit[] hits = Physics.RaycastAll(origin, direction, _attackRange, ~0);

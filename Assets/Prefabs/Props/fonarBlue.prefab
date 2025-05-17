@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5092123027714093647}
   - component: {fileID: 4368345390329631062}
   - component: {fileID: 9132732610486288446}
-  m_Layer: 11
+  m_Layer: 7
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 2112181226684284294}
   - component: {fileID: 1475855241965463175}
   - component: {fileID: 1143791619970589659}
-  m_Layer: 11
+  m_Layer: 7
   m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -129,9 +129,9 @@ Light:
   m_Enabled: 1
   serializedVersion: 11
   m_Type: 2
-  m_Color: {r: 0.19607842, g: 0.82344335, b: 0.9647059, a: 1}
-  m_Intensity: 10
-  m_Range: 15
+  m_Color: {r: 0.97735846, g: 0.97735846, b: 0.97735846, a: 1}
+  m_Intensity: 15
+  m_Range: 20
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -229,7 +229,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8815f186f1ab22f41aea945bb52d4d87, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 14.26
+      value: 26.15
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8815f186f1ab22f41aea945bb52d4d87, type: 3}
       propertyPath: m_LocalPosition.y
@@ -237,7 +237,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8815f186f1ab22f41aea945bb52d4d87, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -9.645458
+      value: -9.61
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8815f186f1ab22f41aea945bb52d4d87, type: 3}
       propertyPath: m_LocalRotation.w
@@ -245,7 +245,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8815f186f1ab22f41aea945bb52d4d87, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8815f186f1ab22f41aea945bb52d4d87, type: 3}
       propertyPath: m_LocalRotation.y
@@ -277,7 +277,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 8815f186f1ab22f41aea945bb52d4d87, type: 3}
       propertyPath: m_Layer
-      value: 11
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 8815f186f1ab22f41aea945bb52d4d87, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -309,7 +309,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8119604903559459610}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: c3a9c62057227834ca5933583b32a0e6, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
