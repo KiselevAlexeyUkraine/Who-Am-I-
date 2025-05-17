@@ -63,7 +63,7 @@ namespace Components.Props
                     animator.enabled = false;
                 }
 
-                StartCoroutine(DelayedDamage(other.gameObject, 0));
+                StartCoroutine(DelayedDamage(other.gameObject, 0.5f));
             }
 
 
