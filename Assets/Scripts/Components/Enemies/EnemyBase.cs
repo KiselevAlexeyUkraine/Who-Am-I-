@@ -73,13 +73,24 @@ namespace Components.Enemies
 
                 if (_playerVisible)
                 {
-                    if (!_isChasing)
+                    float dist = Vector3.Distance(transform.position, _player.position);
+
+                    if (dist <= _stopChaseDistance)
+                    {
+                        _isAttacking = true;
+                        _isChasing = true;
+                        _chaseMemoryTimer = _chaseMemoryDuration;
+                        _agent.isStopped = true;
+                        OnAttack?.Invoke();
+                        if (_debug) Debug.Log("[Enemy] Immediate Attack");
+                    }
+                    else
                     {
                         _isChasing = true;
                         _chaseMemoryTimer = _chaseMemoryDuration;
                         _agent.isStopped = false;
                         OnSeePlayer?.Invoke();
-                        if (_debug) Debug.Log("[Enemy] Saw player");
+                        if (_debug) Debug.Log("[Enemy] Immediate Chase");
                     }
                 }
 
@@ -119,11 +130,24 @@ namespace Components.Enemies
                             _playerVisible = CanSeePlayer(false);
                             if (_playerVisible)
                             {
-                                _isChasing = true;
-                                _chaseMemoryTimer = _chaseMemoryDuration;
-                                _agent.isStopped = false;
-                                OnSeePlayer?.Invoke();
-                                if (_debug) Debug.Log("[Enemy] Reacquired player while rotating");
+                                float dist = Vector3.Distance(transform.position, _player.position);
+                                if (dist <= _stopChaseDistance)
+                                {
+                                    _isAttacking = true;
+                                    _isChasing = true;
+                                    _chaseMemoryTimer = _chaseMemoryDuration;
+                                    _agent.isStopped = true;
+                                    OnAttack?.Invoke();
+                                    if (_debug) Debug.Log("[Enemy] Reacquired and Attacking while rotating");
+                                }
+                                else
+                                {
+                                    _isChasing = true;
+                                    _chaseMemoryTimer = _chaseMemoryDuration;
+                                    _agent.isStopped = false;
+                                    OnSeePlayer?.Invoke();
+                                    if (_debug) Debug.Log("[Enemy] Reacquired and Chasing while rotating");
+                                }
                                 break;
                             }
                         }
@@ -162,6 +186,12 @@ namespace Components.Enemies
                     if (!_waitingAfterLostPlayer && !_isWaitingAtPatrol)
                     {
                         _agent.speed = _moveSpeed;
+
+                        if (CanSeePlayer(false))
+                        {
+                            continue;
+                        }
+
                         await Patrol();
                     }
                 }
@@ -182,6 +212,8 @@ namespace Components.Enemies
                 float elapsed = 0f;
                 while (elapsed < _waitBeforeNextPatrolPoint)
                 {
+                    if (CanSeePlayer(false)) return;
+
                     RotateTowardsNextPatrolPoint();
                     await UniTask.Yield(PlayerLoopTiming.Update, _token);
                     elapsed += Time.deltaTime;
