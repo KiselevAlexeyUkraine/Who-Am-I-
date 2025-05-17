@@ -58,7 +58,7 @@ namespace Components.Props
 
         public void Interact()
         {
-            isActive = false;
+            isActive = !isActive;
             Debug.Log($"Trap [{trapType}] manually deactivated via interact.");
         }
     }

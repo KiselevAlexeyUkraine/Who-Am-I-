@@ -34,10 +34,12 @@ namespace Components.Props
             {
                 Debug.Log("[PitTrap] Enemy layer hit");
 
-                if (other.TryGetComponent<Enemies.BasicEnemy>(out var basicEnemy))
+                var rb = other.GetComponent<Rigidbody>();
+                if (rb != null)
                 {
-                    basicEnemy.enabled = false;
-                    Debug.Log("[PitTrap] BasicEnemy script disabled.");
+                    rb.isKinematic = false;
+                    rb.constraints = RigidbodyConstraints.None;
+                    Debug.Log("[PitTrap] Player Collider disabled: " + rb.name);
                 }
 
                 if (other.TryGetComponent<NavMeshAgent>(out var agent))
@@ -51,19 +53,13 @@ namespace Components.Props
                     Debug.Log("[PitTrap] Player Collider disabled: " + collider.name);
                 }
 
-                var rb = other.GetComponent<Rigidbody>();
-                if (rb != null)
+                if (other.TryGetComponent<Enemies.BasicEnemy>(out var basicEnemy))
                 {
-                    rb.isKinematic = false;
-                    Debug.Log("[PitTrap] Player Collider disabled: " + collider.name);
+                    basicEnemy.enabled = false;
+                    Debug.Log("[PitTrap] BasicEnemy script disabled.");
                 }
 
-                if (other.TryGetComponent<Animator>(out var animator))
-                {
-                    animator.enabled = false;
-                }
-
-                StartCoroutine(DelayedDamage(other.gameObject, 0.5f));
+                StartCoroutine(DelayedDamage(other.gameObject, 1.5f));
             }
 
 
