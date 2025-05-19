@@ -3,6 +3,8 @@ using Components.Interaction;
 using Components.Items;
 using Components.Player;
 using Zenject;
+using System;
+using Components.Ui.Pages;
 
 namespace Components.Props
 {
@@ -13,17 +15,24 @@ namespace Components.Props
         [SerializeField] private KeyType requiredKey = KeyType.Red;
         [SerializeField] private AudioClip _closeDoor;
 
+        [Header("Final Door")]
+        [SerializeField] private bool _isFinalDoor = false;
+
+        public event Action Opened;
+
         private Animator _animator;
         private AudioSource _audioSource;
         private bool isOpen;
 
         private DiContainer _container;
         private PlayerInventory _inventory;
+        private PageSwitcher _pageSwitcher;
 
         [Inject]
-        private void Construct(DiContainer container)
+        private void Construct(DiContainer container, PageSwitcher pageSwitcher)
         {
             _container = container;
+            _pageSwitcher = pageSwitcher;
         }
 
         private void Start()
@@ -47,12 +56,23 @@ namespace Components.Props
                 _audioSource?.Play();
                 isOpen = true;
                 gameObject.layer = LayerMask.NameToLayer("Default");
+
+                if (_isFinalDoor)
+                {
+                    Opened?.Invoke();
+                    CompleteLevel();
+                }
             }
             else
             {
                 Debug.Log("Key required: " + requiredKey);
                 _audioSource?.PlayOneShot(_closeDoor);
             }
+        }
+
+        private void CompleteLevel()
+        {
+            _pageSwitcher.Open(PageName.Complete).Forget();
         }
     }
 }
