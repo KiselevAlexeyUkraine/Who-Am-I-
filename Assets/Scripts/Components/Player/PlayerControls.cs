@@ -87,12 +87,12 @@ namespace Components.Player
             Crouch();
             ChangeFov();
             UpdateStamina();
+            Move();
         }
 
         private void FixedUpdate()
         {
             if (_pause.IsPaused) return;
-            Move();
         }
 
         private void Move()
