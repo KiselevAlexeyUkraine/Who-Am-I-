@@ -231,7 +231,7 @@ MonoBehaviour:
   _rotationSpeed: 1
   _chaseDistance: 10
   DefaultViewAngle: 200
-  _stopChaseDistance: 2.5
+  _stopChaseDistance: 2
   _postLoseWaitTime: 2
   _waitBeforeNextPatrolPoint: 2
   _chaseMemoryDuration: 3
@@ -243,12 +243,12 @@ MonoBehaviour:
     m_Bits: 65
   _ignoreWhileChasing:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 576
   _viewOrigin: {fileID: 6727532029811057389}
   _debug: 1
   _animator: {fileID: 7117880699652560438}
   _source: {fileID: 2957626038569936493}
-  _attackRange: 5
+  _attackRange: 6
   _damageAmount: 10
   _chaseTimeout: 3
 --- !u!82 &2957626038569936493

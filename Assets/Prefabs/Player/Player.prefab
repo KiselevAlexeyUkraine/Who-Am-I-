@@ -456,7 +456,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _flashlight: {fileID: 8423953538433833137}
   _batteryCapacity: 100
-  _drainRate: 5
+  _drainRate: 1
 --- !u!114 &3153441882707883923
 MonoBehaviour:
   m_ObjectHideFlags: 0
