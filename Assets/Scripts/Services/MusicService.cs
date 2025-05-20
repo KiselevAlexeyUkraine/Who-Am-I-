@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,32 +7,67 @@ namespace Services
     public class MusicService : MonoBehaviour
     {
         [SerializeField]
-        public AudioSource _audioSource;
+        private AudioSource _audioSource;
+
         [SerializeField]
-        public List<AudioClip> _musicList;
+        private List<AudioClip> _musicList;
 
         private int _index = -1;
+        private Coroutine _playbackCoroutine;
 
         public bool IsPlaying => _audioSource.isPlaying;
 
-        public void PlayNext()
+        private void Awake()
         {
+            foreach (var clip in _musicList)
+            {
+                if (!clip.preloadAudioData)
+                    clip.LoadAudioData();
+            }
+        }
+
+        private void Start()
+        {
+            if (_musicList.Count > 0)
+            {
+                _playbackCoroutine = StartCoroutine(PlaybackLoop());
+            }
+        }
+
+        private IEnumerator PlaybackLoop()
+        {
+            while (true)
+            {
+                if (!_audioSource.isPlaying)
+                {
+                    yield return StartCoroutine(PlayNextCoroutine());
+                }
+
+                yield return new WaitForSeconds(0.1f);
+            }
+        }
+
+        private IEnumerator PlayNextCoroutine()
+        {
+            if (_musicList.Count == 0) yield break;
+
             _index = (_index + 1) % _musicList.Count;
-            _audioSource.clip = _musicList[_index];
+
+            AudioClip nextClip = _musicList[_index];
+
+            if (nextClip.loadState != AudioDataLoadState.Loaded)
+            {
+                nextClip.LoadAudioData();
+                yield return new WaitUntil(() => nextClip.loadState == AudioDataLoadState.Loaded);
+            }
+
+            _audioSource.clip = nextClip;
             _audioSource.Play();
         }
 
-        private void Update()
+        public void PlayNext()
         {
-            if (_musicList.Count == 0)
-            {
-                return;
-            }
-            
-            if (!IsPlaying)
-            {
-                PlayNext();
-            }
+            StartCoroutine(PlayNextCoroutine());
         }
     }
 }

@@ -23,6 +23,7 @@ namespace Components.Props
         [SerializeField] private Ease moveEase = Ease.InOutSine;
 
         private bool isActive = false;
+        private bool isAnimating = false;
         private Collider triggerCollider;
 
         private void Start()
@@ -49,11 +50,15 @@ namespace Components.Props
 
         private void ActivateTrap()
         {
+            if (isAnimating) return;
+
+            isAnimating = true;
             movingPart.DOLocalMoveY(activeY, moveDuration)
                       .SetEase(moveEase)
                       .SetUpdate(true)
                       .OnComplete(() =>
                       {
+                          isAnimating = false;
                           isActive = true;
                           Debug.Log($"Trap [{trapType}] activated at Y:{activeY}");
                       });
@@ -61,11 +66,15 @@ namespace Components.Props
 
         private void DeactivateTrap()
         {
+            if (isAnimating) return;
+
+            isAnimating = true;
             movingPart.DOLocalMoveY(inactiveY, moveDuration)
                       .SetEase(moveEase)
                       .SetUpdate(true)
                       .OnComplete(() =>
                       {
+                          isAnimating = false;
                           isActive = false;
                           Debug.Log($"Trap [{trapType}] deactivated at Y:{inactiveY}");
                       });
@@ -89,6 +98,8 @@ namespace Components.Props
 
         public void Interact()
         {
+            if (isAnimating) return;
+
             if (isActive)
                 DeactivateTrap();
             else

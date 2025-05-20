@@ -13,19 +13,21 @@ namespace Components.Ui.Pages.Menu
         [SerializeField] private Button _back;
 
         private SceneService _sceneService;
+        private DiContainer _container;
 
         [Inject]
-        private void Construct(SceneService sceneService)
+        private void Construct(SceneService sceneService, DiContainer container)
         {
             _sceneService = sceneService;
+            _container = container;
 
-			CreateLevelButtons();
-		}
-        
+            CreateLevelButtons();
+        }
+
         private void Awake()
         {
             _back.onClick.AddListener(() => { PageSwitcher.Open(PageName.Menu).Forget(); });
-		}
+        }
 
         private void OnDestroy()
         {
@@ -34,17 +36,18 @@ namespace Components.Ui.Pages.Menu
 
         private void CreateLevelButtons()
         {
-			for (var i = 2; i < _sceneService.GetScenesCount(); i++)
-			{
-				var levelIndex = i;
-				var newLevel = Instantiate(_levelButtonPrefab, _levelsContainer);
+            for (var i = 2; i < _sceneService.GetScenesCount(); i++)
+            {
+                var levelIndex = i;
+                var newLevelGO = _container.InstantiatePrefab(_levelButtonPrefab, _levelsContainer);
+                var newLevel = newLevelGO.GetComponent<Button>();
                 newLevel.GetComponentInChildren<TMP_Text>().text = $"{i - 1}";
-				newLevel.onClick.AddListener(() =>
-				{
-					_sceneService.SceneToLoad = levelIndex;
+                newLevel.onClick.AddListener(() =>
+                {
+                    _sceneService.SceneToLoad = levelIndex;
                     PageSwitcher.Open(PageName.Start).Forget();
-				});
-			}
-		}
-	}
+                });
+            }
+        }
+    }
 }

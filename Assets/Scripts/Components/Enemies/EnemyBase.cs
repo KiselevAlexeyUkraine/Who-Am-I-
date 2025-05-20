@@ -91,6 +91,8 @@ namespace Components.Enemies
                 rb.isKinematic = false;
             }
 
+            gameObject.layer = LayerMask.NameToLayer("Default");
+
             enabled = false;
         }
 
