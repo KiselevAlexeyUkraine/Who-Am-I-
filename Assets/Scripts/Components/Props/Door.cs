@@ -5,6 +5,7 @@ using Components.Player;
 using Zenject;
 using System;
 using Components.Ui.Pages;
+using DG.Tweening;
 
 namespace Components.Props
 {
@@ -18,15 +19,20 @@ namespace Components.Props
         [Header("Final Door")]
         [SerializeField] private bool _isFinalDoor = false;
 
+        [Header("Tween Settings")]
+        [SerializeField] private float _openDuration = 1f;
+
         public event Action Opened;
 
-        private Animator _animator;
         private AudioSource _audioSource;
         private bool isOpen;
 
         private DiContainer _container;
         private PlayerInventory _inventory;
         private PageSwitcher _pageSwitcher;
+
+        private Quaternion _initialRotation;
+        private Quaternion _targetRotation;
 
         [Inject]
         private void Construct(DiContainer container, PageSwitcher pageSwitcher)
@@ -38,8 +44,10 @@ namespace Components.Props
         private void Start()
         {
             _inventory = _container.Resolve<PlayerInventory>();
-            _animator = GetComponent<Animator>();
             _audioSource = GetComponent<AudioSource>();
+
+            _initialRotation = transform.rotation;
+            _targetRotation = _initialRotation * Quaternion.Euler(0, 90f, 0);
         }
 
         public void Interact()
@@ -52,16 +60,20 @@ namespace Components.Props
                 if (_useKey)
                     _inventory.UseKey(requiredKey);
 
-                _animator.Play("Open");
-                _audioSource?.Play();
-                isOpen = true;
-                gameObject.layer = LayerMask.NameToLayer("Default");
+                transform.DORotateQuaternion(_targetRotation, _openDuration)
+                         .OnComplete(() =>
+                         {
+                             isOpen = true;
+                             gameObject.layer = LayerMask.NameToLayer("Default");
 
-                if (_isFinalDoor)
-                {
-                    Opened?.Invoke();
-                    CompleteLevel();
-                }
+                             if (_isFinalDoor)
+                             {
+                                 Opened?.Invoke();
+                                 CompleteLevel();
+                             }
+                         });
+
+                _audioSource?.Play();
             }
             else
             {
