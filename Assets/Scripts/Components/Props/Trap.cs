@@ -1,4 +1,5 @@
 using UnityEngine;
+using DG.Tweening;
 using Components.Interaction;
 
 namespace Components.Props
@@ -14,6 +15,13 @@ namespace Components.Props
         [Header("Target Layers")]
         [SerializeField] private LayerMask enemyLayer;
 
+        [Header("Moving Part Settings")]
+        [SerializeField] private Transform movingPart;
+        [SerializeField] private float activeY = 1f;
+        [SerializeField] private float inactiveY = 0f;
+        [SerializeField] private float moveDuration = 0.5f;
+        [SerializeField] private Ease moveEase = Ease.InOutSine;
+
         private bool isActive = false;
         private Collider triggerCollider;
 
@@ -25,19 +33,42 @@ namespace Components.Props
                 Debug.LogError("Trap must have a Collider set as Trigger!");
             }
 
+            if (movingPart == null)
+            {
+                Debug.LogError("Trap requires a reference to the moving part!");
+                enabled = false;
+                return;
+            }
+
+            Vector3 initialPos = movingPart.localPosition;
+            initialPos.y = inactiveY;
+            movingPart.localPosition = initialPos;
+
             ActivateTrap();
         }
 
         private void ActivateTrap()
         {
-            isActive = true;
-            Debug.Log($"Trap [{trapType}] activated!");
+            movingPart.DOLocalMoveY(activeY, moveDuration)
+                      .SetEase(moveEase)
+                      .SetUpdate(true)
+                      .OnComplete(() =>
+                      {
+                          isActive = true;
+                          Debug.Log($"Trap [{trapType}] activated at Y:{activeY}");
+                      });
         }
 
         private void DeactivateTrap()
         {
-            isActive = false;
-            Debug.Log($"Trap [{trapType}] deactivated!");
+            movingPart.DOLocalMoveY(inactiveY, moveDuration)
+                      .SetEase(moveEase)
+                      .SetUpdate(true)
+                      .OnComplete(() =>
+                      {
+                          isActive = false;
+                          Debug.Log($"Trap [{trapType}] deactivated at Y:{inactiveY}");
+                      });
         }
 
         private void OnTriggerEnter(Collider other)
@@ -58,8 +89,10 @@ namespace Components.Props
 
         public void Interact()
         {
-            isActive = !isActive;
-            Debug.Log($"Trap [{trapType}] manually deactivated via interact.");
+            if (isActive)
+                DeactivateTrap();
+            else
+                ActivateTrap();
         }
     }
 }
