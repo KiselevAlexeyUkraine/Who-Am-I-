@@ -18,6 +18,7 @@ namespace Components.Ui.Pages
         GameExit,
         MenuStart,
         GameRestart,
-        NextLevel
+        NextLevel,
+        Tutorial
     }
 }
