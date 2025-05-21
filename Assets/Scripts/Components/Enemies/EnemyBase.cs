@@ -8,7 +8,7 @@ using Zenject;
 
 namespace Components.Enemies
 {
-    public abstract class EnemyBase : MonoBehaviour
+    public abstract class EnemyBase : MonoBehaviour, IStunnable
     {
         public event Action OnSeePlayer;
         public event Action OnLosePlayer;
@@ -48,6 +48,7 @@ namespace Components.Enemies
         protected bool _isChasing;
         protected bool _waitingAfterLostPlayer;
         protected bool _isDead;
+        protected bool _isStunned;
 
         private float _chaseMemoryTimer = 0f;
         private int _currentPatrolIndex;
@@ -70,12 +71,38 @@ namespace Components.Enemies
             PatrolLoop().Forget();
         }
 
+        public void Stun(float duration)
+        {
+            if (_debug) Debug.Log("[Enemy] Stunned for " + duration);
+            if (_isDead || _isStunned) return;
+
+            _isStunned = true;
+            _agent.isStopped = true;
+            _agent.ResetPath();
+            OnIdle?.Invoke();
+
+            HandleStun(duration).Forget();
+        }
+
+        private async UniTaskVoid HandleStun(float duration)
+        {
+            float timer = 0f;
+            while (timer < duration)
+            {
+                timer += Time.deltaTime;
+                await UniTask.Yield(PlayerLoopTiming.Update, _token);
+            }
+
+            _isStunned = false;
+            _agent.isStopped = false;
+            if (_debug) Debug.Log("[Enemy] Recovered from stun");
+        }
+
         protected void MarkDead()
         {
             if (_debug) Debug.Log("[Enemy] Died");
 
             _isDead = true;
-
             OnDeath?.Invoke();
 
             if (_agent != null)
@@ -84,7 +111,7 @@ namespace Components.Enemies
                 _agent.ResetPath();
                 _agent.enabled = false;
             }
-            
+
             var rb = GetComponent<Rigidbody>();
             if (rb != null)
             {
@@ -92,7 +119,6 @@ namespace Components.Enemies
             }
 
             gameObject.layer = LayerMask.NameToLayer("Default");
-
             enabled = false;
         }
 
@@ -100,10 +126,10 @@ namespace Components.Enemies
         {
             while (true)
             {
-                if (_isDead) break;
+                if (_isDead || _isStunned) { await UniTask.Yield(PlayerLoopTiming.Update, _token); continue; }
 
                 _playerVisible = CanSeePlayer(_isChasing);
-                if (_isDead) break;
+                if (_isDead || _isStunned) break;
 
                 if (_playerVisible)
                 {
@@ -130,6 +156,7 @@ namespace Components.Enemies
 
                 if (_isChasing)
                 {
+                    if (_isStunned) continue;
                     _agent.speed = _chaseSpeed;
                     _viewAngle = ChaseViewAngle;
 
@@ -141,7 +168,7 @@ namespace Components.Enemies
                         _chaseMemoryTimer -= Time.deltaTime;
 
                     RotateTowardsPlayer();
-                    if (_isDead) break;
+                    if (_isDead || _isStunned) break;
 
                     if (_chaseMemoryTimer <= 0f)
                     {
@@ -158,13 +185,13 @@ namespace Components.Enemies
                         float rotateTime = 0f;
                         while (rotateTime < _postLoseWaitTime)
                         {
-                            if (_isDead) break;
+                            if (_isDead || _isStunned) break;
 
                             transform.Rotate(Vector3.up * _rotationSpeed);
                             rotateTime += Time.deltaTime;
                             await UniTask.Yield(PlayerLoopTiming.Update, _token);
 
-                            if (_isDead) break;
+                            if (_isDead || _isStunned) break;
 
                             _playerVisible = CanSeePlayer(false);
                             if (_playerVisible)
@@ -241,13 +268,12 @@ namespace Components.Enemies
 
         protected virtual async UniTask Patrol()
         {
-            if (_isDead) return;
-
+            if (_isDead || _isStunned) return;
             if (_patrolPoints.Length == 0) return;
 
             if (!_agent.hasPath || _agent.remainingDistance < 0.5f)
             {
-                if (_isDead) return;
+                if (_isDead || _isStunned) return;
 
                 _isWaitingAtPatrol = true;
                 OnIdle?.Invoke();
@@ -255,7 +281,7 @@ namespace Components.Enemies
                 float elapsed = 0f;
                 while (elapsed < _waitBeforeNextPatrolPoint)
                 {
-                    if (_isDead) return;
+                    if (_isDead || _isStunned) return;
 
                     if (CanSeePlayer(false)) return;
 
@@ -264,7 +290,7 @@ namespace Components.Enemies
                     elapsed += Time.deltaTime;
                 }
 
-                if (_isDead) return;
+                if (_isDead || _isStunned) return;
 
                 OnWalk?.Invoke();
 

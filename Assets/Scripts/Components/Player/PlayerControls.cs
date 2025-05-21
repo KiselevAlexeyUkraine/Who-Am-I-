@@ -2,11 +2,12 @@ using Services;
 using System;
 using UnityEngine;
 using Zenject;
+using Components.Interaction;
 
 namespace Components.Player
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class PlayerControls : MonoBehaviour
+    public class PlayerControls : MonoBehaviour, IStunnable
     {
         public event Action OnJump;
         public event Action OnMove;
@@ -57,6 +58,8 @@ namespace Components.Player
         private bool _isCrouching;
         private Vector3 _motion;
 
+        private bool _isStunned;
+
         [Inject]
         private void Construct(InputService inputService, SettingsService settingsService, PauseService pauseService)
         {
@@ -84,6 +87,8 @@ namespace Components.Player
             }
 
             MouseLook();
+            if (_isStunned) return;
+
             Crouch();
             ChangeFov();
             UpdateStamina();
@@ -92,7 +97,7 @@ namespace Components.Player
 
         private void FixedUpdate()
         {
-            if (_pause.IsPaused) return;
+            if (_pause.IsPaused || _isStunned) return;
         }
 
         private void Move()
@@ -191,6 +196,18 @@ namespace Components.Player
 
         private bool IsGrounded =>
             Physics.CheckSphere(_groundCheckerTransform.position, _checkerRadius, _groundLayer);
+
+        public void Stun(float duration)
+        {
+            if (_isStunned) return;
+            _isStunned = true;
+            Invoke(nameof(EndStun), duration);
+        }
+
+        private void EndStun()
+        {
+            _isStunned = false;
+        }
 
 #if UNITY_EDITOR
         private void OnDrawGizmos()
