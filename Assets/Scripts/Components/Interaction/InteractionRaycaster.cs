@@ -1,3 +1,5 @@
+// File: Components/Interaction/InteractionRaycaster.cs
+
 using UnityEngine;
 using Services;
 using Zenject;
@@ -17,12 +19,17 @@ namespace Components.Interaction
         [SerializeField] private string _heldLayerName = "Held";
         [SerializeField] private Vector3 _pickupRotationEuler = Vector3.zero;
 
+        [Header("Audio Settings")]
+        [SerializeField] private AudioClip _pickupClip;
+        [SerializeField] private AudioClip _dropClip;
+
         public static event System.Action<int> OnCrosshairChange;
 
         private Camera _camera;
         private InputService _input;
         private PlayerInventory _inventory;
         private DiContainer _container;
+        private AudioService _audioService;
 
         private Transform _heldItem;
         private Rigidbody _heldItemRb;
@@ -30,10 +37,11 @@ namespace Components.Interaction
         private Collider _disabledCollider;
 
         [Inject]
-        private void Construct(InputService input, DiContainer container)
+        private void Construct(InputService input, DiContainer container, AudioService audioService)
         {
             _input = input;
             _container = container;
+            _audioService = audioService;
         }
 
         private void Start()
@@ -73,39 +81,47 @@ namespace Components.Interaction
 
             if (_input.Action)
             {
-                string lowerName = target.name.ToLower();
+                PickupItemType itemType = DetectPickupType(target.name);
 
-                if (lowerName.Contains("health"))
+                switch (itemType)
                 {
-                    _inventory?.AddMedkit();
-                    Destroy(target);
+                    case PickupItemType.Health:
+                        _inventory?.AddMedkit();
+                        break;
+                    case PickupItemType.Battery:
+                        _inventory?.AddBattery();
+                        break;
+                    case PickupItemType.RedKey:
+                        _inventory?.AddKey(KeyType.Red);
+                        break;
+                    case PickupItemType.BlueKey:
+                        _inventory?.AddKey(KeyType.Blue);
+                        break;
+                    case PickupItemType.YellowKey:
+                        _inventory?.AddKey(KeyType.Yellow);
+                        break;
+                    case PickupItemType.Unknown:
+                        IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+                        interactable?.Interact();
+                        return;
                 }
-                else if (lowerName.Contains("battery"))
-                {
-                    _inventory?.AddBattery();
-                    Destroy(target);
-                }
-                else if (lowerName.Contains("red key"))
-                {
-                    _inventory?.AddKey(KeyType.Red);
-                    Destroy(target);
-                }
-                else if (lowerName.Contains("blue key"))
-                {
-                    _inventory?.AddKey(KeyType.Blue);
-                    Destroy(target);
-                }
-                else if (lowerName.Contains("yellow key"))
-                {
-                    _inventory?.AddKey(KeyType.Yellow);
-                    Destroy(target);
-                }
-                else
-                {
-                    IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-                    interactable?.Interact();
-                }
+
+                _audioService?.PlayOneShot(_pickupClip);
+                Destroy(target);
             }
+        }
+
+        private PickupItemType DetectPickupType(string name)
+        {
+            string lowerName = name.ToLower();
+
+            if (lowerName.Contains("health")) return PickupItemType.Health;
+            if (lowerName.Contains("battery")) return PickupItemType.Battery;
+            if (lowerName.Contains("red key")) return PickupItemType.RedKey;
+            if (lowerName.Contains("blue key")) return PickupItemType.BlueKey;
+            if (lowerName.Contains("yellow key")) return PickupItemType.YellowKey;
+
+            return PickupItemType.Unknown;
         }
 
         private void TryPickup(Collider collider)
@@ -117,7 +133,6 @@ namespace Components.Interaction
 
             _heldItem.parent = _holdPoint;
             _heldItem.localRotation = Quaternion.Euler(_pickupRotationEuler);
-
             _heldItemRb.isKinematic = true;
 
             _originalLayer = _heldItem.gameObject.layer;
@@ -129,21 +144,18 @@ namespace Components.Interaction
 
             _disabledCollider = collider;
             _disabledCollider.enabled = false;
+
+            _audioService?.PlayOneShot(_pickupClip);
         }
 
         private void DropItem()
         {
             _heldItem.parent = null;
 
-            // Локальная позиция holdPoint относительно игрока
             Vector3 localOffset = transform.InverseTransformPoint(_holdPoint.position);
-
-            // Обнуляем Y и Z, чтобы предмет оказался под игроком
             Vector3 localDropOffset = localOffset;
             localDropOffset.y = 0f;
             localDropOffset.z = 0f;
-
-            // Переводим в мировую позицию
             Vector3 worldDropPosition = transform.TransformPoint(localDropOffset);
             _heldItem.position = worldDropPosition;
 
@@ -158,6 +170,18 @@ namespace Components.Interaction
             _heldItem = null;
             _heldItemRb = null;
             _disabledCollider = null;
+
+            _audioService?.PlayOneShot(_dropClip);
+        }
+
+        private enum PickupItemType
+        {
+            Health,
+            Battery,
+            RedKey,
+            BlueKey,
+            YellowKey,
+            Unknown
         }
     }
 }

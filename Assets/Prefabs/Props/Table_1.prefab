@@ -137,7 +137,7 @@ MonoBehaviour:
   propType: 1
   targetTransform: {fileID: 6801716476738006653}
   rotationAngle: 0
-  moveDistance: 0.5
+  moveDistance: 1
   animationDuration: 0.5
   cabinetDoorOpenSound: {fileID: 0}
   shelfOpenSound: {fileID: 8300000, guid: a2526ab33427e704cad3aef5ae2d7330, type: 3}
@@ -265,7 +265,7 @@ MonoBehaviour:
   propType: 1
   targetTransform: {fileID: 83374527523388869}
   rotationAngle: 0
-  moveDistance: 0.5
+  moveDistance: 1
   animationDuration: 0.5
   cabinetDoorOpenSound: {fileID: 0}
   shelfOpenSound: {fileID: 8300000, guid: a2526ab33427e704cad3aef5ae2d7330, type: 3}
