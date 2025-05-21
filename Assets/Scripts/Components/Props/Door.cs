@@ -6,6 +6,7 @@ using Zenject;
 using System;
 using Components.Ui.Pages;
 using DG.Tweening;
+using Services;
 
 namespace Components.Props
 {
@@ -14,6 +15,9 @@ namespace Components.Props
         [Header("Key Settings")]
         [SerializeField] private bool _useKey = true;
         [SerializeField] private KeyType requiredKey = KeyType.Red;
+
+        [Header("Audio Clips")]
+        [SerializeField] private AudioClip _openDoor;
         [SerializeField] private AudioClip _closeDoor;
 
         [Header("Final Door")]
@@ -24,28 +28,26 @@ namespace Components.Props
 
         public event Action Opened;
 
-        private AudioSource _audioSource;
         private bool isOpen;
-
         private DiContainer _container;
         private PlayerInventory _inventory;
         private PageSwitcher _pageSwitcher;
+        private AudioService _audioService;
 
         private Quaternion _initialRotation;
         private Quaternion _targetRotation;
 
         [Inject]
-        private void Construct(DiContainer container, PageSwitcher pageSwitcher)
+        private void Construct(DiContainer container, PageSwitcher pageSwitcher, AudioService audioService)
         {
             _container = container;
             _pageSwitcher = pageSwitcher;
+            _audioService = audioService;
         }
 
         private void Start()
         {
             _inventory = _container.Resolve<PlayerInventory>();
-            _audioSource = GetComponent<AudioSource>();
-
             _initialRotation = transform.rotation;
             _targetRotation = _initialRotation * Quaternion.Euler(0, 90f, 0);
         }
@@ -73,12 +75,12 @@ namespace Components.Props
                              }
                          });
 
-                _audioSource?.Play();
+                _audioService?.PlayOneShot(_openDoor);
             }
             else
             {
                 Debug.Log("Key required: " + requiredKey);
-                _audioSource?.PlayOneShot(_closeDoor);
+                _audioService?.PlayOneShot(_closeDoor);
             }
         }
 
