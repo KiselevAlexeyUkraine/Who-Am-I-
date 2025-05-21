@@ -2,12 +2,11 @@ using Services;
 using System;
 using UnityEngine;
 using Zenject;
-using Components.Interaction;
 
 namespace Components.Player
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class PlayerControls : MonoBehaviour, IStunnable
+    public class PlayerControls : MonoBehaviour, IStunnable, ISlowable
     {
         public event Action OnJump;
         public event Action OnMove;
@@ -60,6 +59,9 @@ namespace Components.Player
 
         private bool _isStunned;
 
+        private float _slowMultiplier = 1f;
+        private float _slowEndTime = 0f;
+
         [Inject]
         private void Construct(InputService inputService, SettingsService settingsService, PauseService pauseService)
         {
@@ -89,6 +91,9 @@ namespace Components.Player
             MouseLook();
             if (_isStunned) return;
 
+            if (Time.time >= _slowEndTime)
+                _slowMultiplier = 1f;
+
             Crouch();
             ChangeFov();
             UpdateStamina();
@@ -105,6 +110,8 @@ namespace Components.Player
             bool canSprint = !_isStaminaExhausted;
             var isSprinting = _input.Sprint && !_isCrouching && canSprint;
             var speed = (_isCrouching ? _crouchSpeed : _moveSpeed) * (isSprinting ? _sprintMultiplier : 1f);
+            speed *= _slowMultiplier;
+
             _motion = transform.right * _input.Horizontal + transform.forward * _input.Vertical;
 
             if (_motion.magnitude > 1f)
@@ -207,6 +214,12 @@ namespace Components.Player
         private void EndStun()
         {
             _isStunned = false;
+        }
+
+        public void ApplySlow(float speedMultiplier, float duration)
+        {
+            _slowMultiplier = Mathf.Clamp(speedMultiplier, 0f, 1f);
+            _slowEndTime = Time.time + duration;
         }
 
 #if UNITY_EDITOR

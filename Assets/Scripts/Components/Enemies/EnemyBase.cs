@@ -1,3 +1,5 @@
+// File: Components/Enemies/EnemyBase.cs
+
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -5,10 +7,11 @@ using UnityEngine;
 using UnityEngine.AI;
 using Components.Player;
 using Zenject;
+using Components;
 
 namespace Components.Enemies
 {
-    public abstract class EnemyBase : MonoBehaviour, IStunnable
+    public abstract class EnemyBase : MonoBehaviour, IStunnable, ISlowable
     {
         public event Action OnSeePlayer;
         public event Action OnLosePlayer;
@@ -56,6 +59,10 @@ namespace Components.Enemies
         private bool _isAttacking;
         private bool _isWaitingAtPatrol;
 
+        private bool _isSlowed;
+        private float _originalMoveSpeed;
+        private float _originalChaseSpeed;
+
         [Inject]
         private void Construct(PlayerComponent player)
         {
@@ -65,10 +72,44 @@ namespace Components.Enemies
         protected virtual void Start()
         {
             _agent = GetComponent<NavMeshAgent>();
+            _originalMoveSpeed = _moveSpeed;
+            _originalChaseSpeed = _chaseSpeed;
             _agent.speed = _moveSpeed;
             _token = gameObject.GetCancellationTokenOnDestroy();
             _viewAngle = DefaultViewAngle;
             PatrolLoop().Forget();
+        }
+
+        public void ApplySlow(float speedMultiplier, float duration)
+        {
+            if (_debug) Debug.Log($"[Enemy] Slowed by x{speedMultiplier} for {duration} sec");
+            if (_isDead || _isStunned || _isSlowed) return;
+
+            _isSlowed = true;
+
+            _moveSpeed *= speedMultiplier;
+            _chaseSpeed *= speedMultiplier;
+
+            _agent.speed = _isChasing ? _chaseSpeed : _moveSpeed;
+
+            HandleSlow(duration).Forget();
+        }
+
+        private async UniTaskVoid HandleSlow(float duration)
+        {
+            float timer = 0f;
+            while (timer < duration)
+            {
+                timer += Time.deltaTime;
+                await UniTask.Yield(PlayerLoopTiming.Update, _token);
+            }
+
+            _moveSpeed = _originalMoveSpeed;
+            _chaseSpeed = _originalChaseSpeed;
+            _agent.speed = _isChasing ? _chaseSpeed : _moveSpeed;
+
+            _isSlowed = false;
+            if (_debug) Debug.Log("[Enemy] Recovered from slow");
         }
 
         public void Stun(float duration)
@@ -122,6 +163,7 @@ namespace Components.Enemies
             enabled = false;
         }
 
+        // Remaining code (PatrolLoop, CanSeePlayer, Rotate methods, OnDrawGizmosSelected, etc.) stays unchanged
         private async UniTaskVoid PatrolLoop()
         {
             while (true)
