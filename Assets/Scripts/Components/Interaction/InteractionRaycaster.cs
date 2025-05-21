@@ -1,5 +1,3 @@
-// File: Components/Interaction/InteractionRaycaster.cs
-
 using UnityEngine;
 using Services;
 using Zenject;
@@ -18,6 +16,7 @@ namespace Components.Interaction
         [SerializeField] private Transform _holdPoint;
         [SerializeField] private string _heldLayerName = "Held";
         [SerializeField] private Vector3 _pickupRotationEuler = Vector3.zero;
+        [SerializeField] private Vector3 _dropRotationEuler = Vector3.zero;
 
         [Header("Audio Settings")]
         [SerializeField] private AudioClip _pickupClip;
@@ -158,6 +157,7 @@ namespace Components.Interaction
             localDropOffset.z = 0f;
             Vector3 worldDropPosition = transform.TransformPoint(localDropOffset);
             _heldItem.position = worldDropPosition;
+            _heldItem.rotation = Quaternion.Euler(_dropRotationEuler);
 
             _heldItemRb.isKinematic = false;
             _heldItem.gameObject.layer = _originalLayer;

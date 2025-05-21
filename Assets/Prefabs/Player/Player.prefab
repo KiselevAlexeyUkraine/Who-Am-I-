@@ -476,6 +476,7 @@ MonoBehaviour:
   _holdPoint: {fileID: 4770798856913774085}
   _heldLayerName: HoldItem
   _pickupRotationEuler: {x: 0, y: 0, z: 90}
+  _dropRotationEuler: {x: 0, y: 0, z: 0}
   _pickupClip: {fileID: 8300000, guid: 01f31203a14a64a42a9db528bdef83f4, type: 3}
   _dropClip: {fileID: 8300000, guid: f696d9d71392e824fb28eb0d75eb3ecf, type: 3}
 --- !u!136 &4232029722165438116
