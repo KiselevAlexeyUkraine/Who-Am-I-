@@ -46,15 +46,15 @@ namespace Components.Ui
 
         private void UpdateItemsUi()
         {
-            _medkitCountText.text = $"x{_inventory.GetMedkitCount()}";
-            _batteryCountText.text = $"x{_inventory.GetBatteryCount()}";
+            _medkitCountText.text = $"x {_inventory.GetMedkitCount()}";
+            _batteryCountText.text = $"x {_inventory.GetBatteryCount()}";
         }
 
         private void UpdateKeysUi()
         {
-            _redKeyText.text = $"x{_inventory.GetKeyAmount(KeyType.Red)}";
-            _blueKeyText.text = $"x{_inventory.GetKeyAmount(KeyType.Blue)}";
-            _yellowKeyText.text = $"x{_inventory.GetKeyAmount(KeyType.Yellow)}";
+            _redKeyText.text = $"x {_inventory.GetKeyAmount(KeyType.Red)}";
+            _blueKeyText.text = $"x {_inventory.GetKeyAmount(KeyType.Blue)}";
+            _yellowKeyText.text = $"x {_inventory.GetKeyAmount(KeyType.Yellow)}";
         }
     }
 }
