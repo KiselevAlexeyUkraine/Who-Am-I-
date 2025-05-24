@@ -374,12 +374,12 @@ MonoBehaviour:
   _fovTransitionSpeed: 10
   _moveSpeed: 5
   _sprintMultiplier: 1.5
-  _jumpForce: 5
+  _jumpForce: 3
   _mouseSmoothTime: 0.01
   _maxLookAngle: 90
   _crouchHeight: 1.5
   _standHeight: 2.5
-  _crouchSpeed: 7
+  _crouchSpeed: 2
   _crouchTransitionSpeed: 20
   _maxStamina: 100
   _staminaRecoveryStanding: 5
