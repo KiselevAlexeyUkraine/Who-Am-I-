@@ -8,8 +8,8 @@ namespace Components.Ui
     public class CrosshairUI : MonoBehaviour
     {
         [Header("Crosshair UI")]
-        [SerializeField] private Image _crosshairImage;
-        [SerializeField] private Sprite[] _crosshairStates;
+        [SerializeField] private Image _crosshairNormal;
+        [SerializeField] private Image _crosshairInteract;
 
         private void OnEnable()
         {
@@ -24,7 +24,10 @@ namespace Components.Ui
 
         private void UpdateCrosshair(int index)
         {
-            _crosshairImage.sprite = _crosshairStates[index];
+            bool isInteract = index == 1;
+
+            _crosshairNormal.gameObject.SetActive(!isInteract);
+            _crosshairInteract.gameObject.SetActive(isInteract);
         }
     }
 }
