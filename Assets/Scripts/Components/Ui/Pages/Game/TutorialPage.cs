@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Video;
 using TMPro;
 using Zenject;
 using System.Collections.Generic;
@@ -12,10 +11,10 @@ namespace Components.Ui.Pages.Game
     {
         [SerializeField] private Button _continue;
         [SerializeField] private TextMeshProUGUI _tutorialTextMesh;
-        [SerializeField] private VideoPlayer _videoPlayer;
+        [SerializeField] private Image _tutorialImage;
 
         [SerializeField] private List<string> _tutorialTexts;
-        [SerializeField] private List<VideoClip> _tutorialVideos;
+        [SerializeField] private List<Sprite> _tutorialSprites;
 
         private int _currentIndex = -1;
 
@@ -44,13 +43,12 @@ namespace Components.Ui.Pages.Game
 
         private void ShowNextTutorial()
         {
-            if (_tutorialTexts.Count == 0 || _tutorialVideos.Count == 0) return;
+            if (_tutorialTexts.Count == 0 || _tutorialSprites.Count == 0) return;
 
-            _currentIndex = (_currentIndex + 1) % Mathf.Min(_tutorialTexts.Count, _tutorialVideos.Count);
+            _currentIndex = (_currentIndex + 1) % Mathf.Min(_tutorialTexts.Count, _tutorialSprites.Count);
 
             _tutorialTextMesh.text = _tutorialTexts[_currentIndex];
-            _videoPlayer.clip = _tutorialVideos[_currentIndex];
-            _videoPlayer.Play();
+            _tutorialImage.sprite = _tutorialSprites[_currentIndex];
         }
     }
 }
