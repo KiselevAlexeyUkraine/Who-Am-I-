@@ -1,5 +1,3 @@
-// File: Components/Enemies/EnemyBase.cs
-
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -163,7 +161,6 @@ namespace Components.Enemies
             enabled = false;
         }
 
-        // Remaining code (PatrolLoop, CanSeePlayer, Rotate methods, OnDrawGizmosSelected, etc.) stays unchanged
         private async UniTaskVoid PatrolLoop()
         {
             while (true)

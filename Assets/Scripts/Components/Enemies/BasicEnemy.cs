@@ -19,6 +19,11 @@ namespace Components.Enemies
         private bool _isPlayerVisible;
         private int _currentHealth;
 
+        private readonly int HashIdle = Animator.StringToHash("Idle");
+        private readonly int HashWalk = Animator.StringToHash("Walk");
+        private readonly int HashAttack = Animator.StringToHash("Attack");
+        private readonly int HashChase = Animator.StringToHash("Chase");
+
         protected override void Start()
         {
             base.Start();
@@ -29,6 +34,8 @@ namespace Components.Enemies
             OnAttack += HandleAttack;
             OnWalk += HandleWalk;
             OnDeath += HandleDeath;
+
+            _playerLayer = LayerMask.GetMask("Player");
         }
 
         private void OnDestroy()
@@ -47,15 +54,12 @@ namespace Components.Enemies
             {
                 _chaseTimer = _chaseTimeout;
             }
-            else
+            else if (_chaseTimer > 0)
             {
-                if (_chaseTimer > 0)
+                _chaseTimer -= Time.deltaTime;
+                if (_chaseTimer <= 0f)
                 {
-                    _chaseTimer -= Time.deltaTime;
-                    if (_chaseTimer <= 0f)
-                    {
-                        base.LosePlayer();
-                    }
+                    base.LosePlayer();
                 }
             }
         }
@@ -76,11 +80,16 @@ namespace Components.Enemies
             MarkDead();
         }
 
-        private void HandleSeePlayer() => _animator?.Play("Chase");
+        private void HandleSeePlayer()
+        {
+            _isPlayerVisible = true;
+            _animator?.Play(HashChase);
+        }
+
         private void HandleLosePlayer() => _isPlayerVisible = false;
-        private void HandleIdle() => _animator?.Play("Idle");
-        private void HandleWalk() => _animator?.Play("Walk");
-        private void HandleAttack() => _animator?.Play("Attack");
+        private void HandleIdle() => _animator?.Play(HashIdle);
+        private void HandleWalk() => _animator?.Play(HashWalk);
+        private void HandleAttack() => _animator?.Play(HashAttack);
 
         private void HandleDeath()
         {
@@ -96,14 +105,14 @@ namespace Components.Enemies
             Vector3 targetPoint = _player.position + Vector3.up * 1.2f;
             Vector3 direction = (targetPoint - origin).normalized;
 
-            RaycastHit[] hits = Physics.RaycastAll(origin, direction, _attackRange, ~0);
+            RaycastHit[] hits = Physics.RaycastAll(origin, direction, _attackRange, _playerLayer);
 
             foreach (var hit in hits)
             {
                 if (hit.collider.TryGetComponent<IDamageable>(out var damageable))
                 {
                     damageable.TakeDamage(_damageAmount);
-                    Debug.Log($"Ударили сквозь препятствия: {hit.collider.name}");
+                    Debug.Log($"Ударили игрока: {hit.collider.name}");
                     break;
                 }
             }
