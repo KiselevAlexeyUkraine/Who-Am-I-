@@ -19,7 +19,7 @@ TagManager:
   - HoldItem
   - Enemy
   - IgnorBakeNavMesh
-  - 
+  - IgnorePlayer
   - 
   - 
   - 
