@@ -19,7 +19,7 @@ namespace Components.Ui.Pages.Game
         private int _currentIndex = -1;
 
         [Inject]
-        private void Construct(PauseService pauseService, PauseSwitcher pauseSwitcher)
+        private void Construct(PauseService pauseService)
         {
             OnOpen += () =>
             {
