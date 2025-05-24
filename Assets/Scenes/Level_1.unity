@@ -5025,10 +5025,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2429287251092454957, guid: 89f3801633b053342ba863e6ef03d47e, type: 3}
-      propertyPath: m_Name
-      value: Mesh
-      objectReference: {fileID: 0}
     - target: {fileID: 5336577217756227873, guid: 89f3801633b053342ba863e6ef03d47e, type: 3}
       propertyPath: m_Name
       value: battery
