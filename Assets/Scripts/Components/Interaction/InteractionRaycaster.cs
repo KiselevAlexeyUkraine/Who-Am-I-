@@ -63,50 +63,59 @@ namespace Components.Interaction
                 return;
             }
 
-            if (!Physics.Raycast(_camera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0)), out var hit, _rayDistance, _interactableLayer))
+            Ray ray = _camera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+
+            if (Physics.Raycast(ray, out var hit, _rayDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
             {
-                OnCrosshairChange?.Invoke(0);
-                return;
-            }
-
-            GameObject target = hit.collider.gameObject;
-            OnCrosshairChange?.Invoke(1);
-
-            if (target.CompareTag("Draggable") && _input.PickupPressed && _heldItem == null)
-            {
-                TryPickup(hit.collider);
-                return;
-            }
-
-            if (_input.Action)
-            {
-                PickupItemType itemType = DetectPickupType(target.name);
-
-                switch (itemType)
+                if (((1 << hit.collider.gameObject.layer) & _interactableLayer) == 0)
                 {
-                    case PickupItemType.Health:
-                        _inventory?.AddMedkit();
-                        break;
-                    case PickupItemType.Battery:
-                        _inventory?.AddBattery();
-                        break;
-                    case PickupItemType.RedKey:
-                        _inventory?.AddKey(KeyType.Red);
-                        break;
-                    case PickupItemType.BlueKey:
-                        _inventory?.AddKey(KeyType.Blue);
-                        break;
-                    case PickupItemType.YellowKey:
-                        _inventory?.AddKey(KeyType.Yellow);
-                        break;
-                    case PickupItemType.Unknown:
-                        IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-                        interactable?.Interact();
-                        return;
+                    OnCrosshairChange?.Invoke(0);
+                    return;
                 }
 
-                _audioService?.PlayOneShot(_pickupClip);
-                Destroy(target);
+                GameObject target = hit.collider.gameObject;
+                OnCrosshairChange?.Invoke(1);
+
+                if (target.CompareTag("Draggable") && _input.PickupPressed && _heldItem == null)
+                {
+                    TryPickup(hit.collider);
+                    return;
+                }
+
+                if (_input.Action)
+                {
+                    PickupItemType itemType = DetectPickupType(target.name);
+
+                    switch (itemType)
+                    {
+                        case PickupItemType.Health:
+                            _inventory?.AddMedkit();
+                            break;
+                        case PickupItemType.Battery:
+                            _inventory?.AddBattery();
+                            break;
+                        case PickupItemType.RedKey:
+                            _inventory?.AddKey(KeyType.Red);
+                            break;
+                        case PickupItemType.BlueKey:
+                            _inventory?.AddKey(KeyType.Blue);
+                            break;
+                        case PickupItemType.YellowKey:
+                            _inventory?.AddKey(KeyType.Yellow);
+                            break;
+                        case PickupItemType.Unknown:
+                            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+                            interactable?.Interact();
+                            return;
+                    }
+
+                    _audioService?.PlayOneShot(_pickupClip);
+                    Destroy(target);
+                }
+            }
+            else
+            {
+                OnCrosshairChange?.Invoke(0);
             }
         }
 
