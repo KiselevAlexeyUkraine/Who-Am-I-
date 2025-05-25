@@ -14,12 +14,17 @@ namespace Components.Props
         [SerializeField] private PropType propType;
         [SerializeField] private Transform targetTransform;
         [SerializeField] private float rotationAngle = 90f;
-        [SerializeField] private float moveDistance = 1f;
+
+        [Header("Movement Settings")]
+        [SerializeField] private float moveDistanceZ = 1f;
+        [SerializeField] private float moveDistanceX = 1f;
+
         [SerializeField] private float animationDuration = 0.5f;
 
         [Header("Audio Settings")]
         [SerializeField] private AudioClip cabinetDoorOpenSound;
         [SerializeField] private AudioClip shelfOpenSound;
+        [SerializeField] private AudioClip drawerOpenSound;
 
         private bool isOpen = false;
         private Vector3 initialRotation;
@@ -52,6 +57,10 @@ namespace Components.Props
 
                 case PropType.Shelf:
                     ToggleShelfZ(shelfOpenSound);
+                    break;
+
+                case PropType.Drawer:
+                    ToggleDrawerX(drawerOpenSound);
                     break;
 
                 case PropType.SimpleDoor:
@@ -93,9 +102,21 @@ namespace Components.Props
         {
             float targetZ = isOpen
                 ? initialPosition.z
-                : initialPosition.z + moveDistance;
+                : initialPosition.z + moveDistanceZ;
 
             targetTransform.DOLocalMoveZ(targetZ, animationDuration);
+
+            PlaySound(clip);
+            isOpen = !isOpen;
+        }
+
+        private void ToggleDrawerX(AudioClip clip)
+        {
+            float targetX = isOpen
+                ? initialPosition.x
+                : initialPosition.x + moveDistanceX;
+
+            targetTransform.DOLocalMoveX(targetX, animationDuration);
 
             PlaySound(clip);
             isOpen = !isOpen;
@@ -107,4 +128,5 @@ namespace Components.Props
                 _audioService.PlayOneShot(clip);
         }
     }
+
 }

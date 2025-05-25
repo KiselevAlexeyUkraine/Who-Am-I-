@@ -4,6 +4,7 @@ namespace Components.Props
     {
         CabinetDoor,
         Shelf,
+        Drawer,
         SimpleDoor
     }
 }
