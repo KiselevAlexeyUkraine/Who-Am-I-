@@ -477,6 +477,9 @@ MonoBehaviour:
   _playerLayer:
     serializedVersion: 2
     m_Bits: 8
+  _ignoreInteractionLayer:
+    serializedVersion: 2
+    m_Bits: 1
   _holdPoint: {fileID: 4770798856913774085}
   _heldLayerName: HoldItem
   _pickupRotationEuler: {x: 0, y: 0, z: 90}

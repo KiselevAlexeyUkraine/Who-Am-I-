@@ -11,6 +11,10 @@ namespace Components.Interaction
         [Header("Raycast Settings")]
         [SerializeField] private float _rayDistance = 3f;
         [SerializeField] private LayerMask _interactableLayer;
+        [SerializeField] private LayerMask _playerLayer;
+
+        [Header("Interaction Filtering")]
+        [SerializeField] private LayerMask _ignoreInteractionLayer;
 
         [Header("Pickup Settings")]
         [SerializeField] private Transform _holdPoint;
@@ -63,51 +67,70 @@ namespace Components.Interaction
                 return;
             }
 
-            if (!Physics.Raycast(_camera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0)), out var hit, _rayDistance, _interactableLayer))
+            Ray ray = _camera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+            RaycastHit[] hits = Physics.RaycastAll(ray, _rayDistance, _interactableLayer | _ignoreInteractionLayer | _playerLayer, QueryTriggerInteraction.Ignore);
+            System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+            foreach (var hit in hits)
             {
-                OnCrosshairChange?.Invoke(0);
-                return;
-            }
+                GameObject target = hit.collider.gameObject;
+                int targetLayer = target.layer;
 
-            GameObject target = hit.collider.gameObject;
-            OnCrosshairChange?.Invoke(1);
-
-            if (target.CompareTag("Draggable") && _input.PickupPressed && _heldItem == null)
-            {
-                TryPickup(hit.collider);
-                return;
-            }
-
-            if (_input.Action)
-            {
-                PickupItemType itemType = DetectPickupType(target.name);
-
-                switch (itemType)
+                if (((1 << targetLayer) & _ignoreInteractionLayer) != 0)
                 {
-                    case PickupItemType.Health:
-                        _inventory?.AddMedkit();
-                        break;
-                    case PickupItemType.Battery:
-                        _inventory?.AddBattery();
-                        break;
-                    case PickupItemType.RedKey:
-                        _inventory?.AddKey(KeyType.Red);
-                        break;
-                    case PickupItemType.BlueKey:
-                        _inventory?.AddKey(KeyType.Blue);
-                        break;
-                    case PickupItemType.YellowKey:
-                        _inventory?.AddKey(KeyType.Yellow);
-                        break;
-                    case PickupItemType.Unknown:
-                        IInteractable interactable = hit.collider.GetComponent<IInteractable>();
-                        interactable?.Interact();
-                        return;
+                    OnCrosshairChange?.Invoke(0);
+                    return;
                 }
 
-                _audioService?.PlayOneShot(_pickupClip);
-                Destroy(target);
+                if (((1 << targetLayer) & _playerLayer) != 0)
+                {
+                    continue;
+                }
+
+                // ќбнаружили валидный интерактивный объект
+                OnCrosshairChange?.Invoke(1);
+
+                if (target.CompareTag("Draggable") && _input.PickupPressed && _heldItem == null)
+                {
+                    TryPickup(hit.collider);
+                    return;
+                }
+
+                if (_input.Action)
+                {
+                    PickupItemType itemType = DetectPickupType(target.name);
+
+                    switch (itemType)
+                    {
+                        case PickupItemType.Health:
+                            _inventory?.AddMedkit();
+                            break;
+                        case PickupItemType.Battery:
+                            _inventory?.AddBattery();
+                            break;
+                        case PickupItemType.RedKey:
+                            _inventory?.AddKey(KeyType.Red);
+                            break;
+                        case PickupItemType.BlueKey:
+                            _inventory?.AddKey(KeyType.Blue);
+                            break;
+                        case PickupItemType.YellowKey:
+                            _inventory?.AddKey(KeyType.Yellow);
+                            break;
+                        case PickupItemType.Unknown:
+                            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+                            interactable?.Interact();
+                            return;
+                    }
+
+                    _audioService?.PlayOneShot(_pickupClip);
+                    Destroy(target);
+                }
+
+                return; // мы обработали валидную цель Ч можно выйти
             }
+
+            OnCrosshairChange?.Invoke(0); // ничего не нашли
         }
 
         private PickupItemType DetectPickupType(string name)
