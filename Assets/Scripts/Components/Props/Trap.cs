@@ -22,9 +22,12 @@ namespace Components.Props
         [SerializeField] private float moveDuration = 0.5f;
         [SerializeField] private Ease moveEase = Ease.InOutSine;
 
+        private Collider triggerCollider;
+
+
         private bool isActive = false;
         private bool isAnimating = false;
-        private Collider triggerCollider;
+
 
         private void Start()
         {
@@ -87,8 +90,7 @@ namespace Components.Props
             int layerMask = 1 << other.gameObject.layer;
             if ((enemyLayer.value & layerMask) == 0) return;
 
-            var victim = other.GetComponentInParent<IDamageable>();
-            if (victim != null)
+            if (other.TryGetComponent<IDamageable>(out var victim))
             {
                 victim.TakeDamage(damage);
                 Debug.Log($"Trap [{trapType}] dealt {damage} to {other.name}");

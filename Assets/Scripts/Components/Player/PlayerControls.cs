@@ -5,7 +5,7 @@ using Zenject;
 
 namespace Components.Player
 {
-    [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(CharacterController))]
     public class PlayerControls : MonoBehaviour, IStunnable, ISlowable
     {
         public event Action OnJump;
@@ -21,6 +21,7 @@ namespace Components.Player
         [SerializeField] private float _moveSpeed = 5f;
         [SerializeField] private float _sprintMultiplier = 1.5f;
         [SerializeField] private float _jumpForce = 5f;
+        [SerializeField] private float _gravity = -9.81f;
 
         [Header("Mouse Look Settings")]
         [SerializeField] private float _mouseSmoothTime = 0.1f;
@@ -39,14 +40,9 @@ namespace Components.Player
         [SerializeField] private float _staminaDrainSprinting = 10f;
         [SerializeField] private float _staminaSprintThreshold = 10f;
 
-        [Header("Ground Check")]
-        [SerializeField] private Transform _groundCheckerTransform;
-        [SerializeField] private LayerMask _groundLayer;
-        [SerializeField] private float _checkerRadius;
-
         private float _currentStamina;
         private bool _isStaminaExhausted;
-        private Rigidbody _rigidbody;
+        private CharacterController _controller;
         private SettingsService _settings;
         private InputService _input;
         private PauseService _pause;
@@ -62,6 +58,9 @@ namespace Components.Player
         private float _slowMultiplier = 1f;
         private float _slowEndTime = 0f;
 
+        private float _verticalVelocity;
+        private bool IsGrounded => _controller.isGrounded;
+
         [Inject]
         private void Construct(InputService inputService, SettingsService settingsService, PauseService pauseService)
         {
@@ -72,8 +71,7 @@ namespace Components.Player
 
         private void Start()
         {
-            _rigidbody = GetComponent<Rigidbody>();
-            _rigidbody.freezeRotation = true;
+            _controller = GetComponent<CharacterController>();
             _camera.fieldOfView = _settings.SavedFov;
             _currentStamina = _maxStamina;
             _isStaminaExhausted = false;
@@ -100,16 +98,11 @@ namespace Components.Player
             Move();
         }
 
-        private void FixedUpdate()
-        {
-            if (_pause.IsPaused || _isStunned) return;
-        }
-
         private void Move()
         {
             bool canSprint = !_isStaminaExhausted;
-            var isSprinting = _input.Sprint && !_isCrouching && canSprint;
-            var speed = (_isCrouching ? _crouchSpeed : _moveSpeed) * (isSprinting ? _sprintMultiplier : 1f);
+            bool isSprinting = _input.Sprint && !_isCrouching && canSprint;
+            float speed = (_isCrouching ? _crouchSpeed : _moveSpeed) * (isSprinting ? _sprintMultiplier : 1f);
             speed *= _slowMultiplier;
 
             _motion = transform.right * _input.Horizontal + transform.forward * _input.Vertical;
@@ -120,14 +113,18 @@ namespace Components.Player
             if (_motion.magnitude > 0.1f)
                 OnMove?.Invoke();
 
-            Vector3 velocity = _motion * speed;
-            _rigidbody.linearVelocity = new Vector3(velocity.x, _rigidbody.linearVelocity.y, velocity.z);
+            if (IsGrounded && _verticalVelocity < 0f)
+                _verticalVelocity = -2f;
 
             if (IsGrounded && _input.Jump && !_isCrouching)
             {
-                _rigidbody.linearVelocity = new Vector3(_rigidbody.linearVelocity.x, _jumpForce, _rigidbody.linearVelocity.z);
+                _verticalVelocity = _jumpForce;
                 OnJump?.Invoke();
             }
+
+            _verticalVelocity += _gravity * Time.deltaTime;
+            Vector3 velocity = _motion * speed + Vector3.up * _verticalVelocity;
+            _controller.Move(velocity * Time.deltaTime);
         }
 
         private void UpdateStamina()
@@ -164,7 +161,7 @@ namespace Components.Player
 
         private void ChangeFov()
         {
-            var fov = _input.Sprint && !Mathf.Approximately(_motion.magnitude, 0f) && !_isStaminaExhausted
+            var fov = _input.Sprint && _motion.magnitude > 0.1f && !_isStaminaExhausted
                 ? _settings.SavedFov * _sprintFovMultiplier
                 : _settings.SavedFov;
             _camera.fieldOfView = Mathf.Lerp(_camera.fieldOfView, fov, Time.deltaTime * _fovTransitionSpeed);
@@ -201,8 +198,7 @@ namespace Components.Player
             _camera.transform.localPosition = cameraPosition;
         }
 
-        private bool IsGrounded =>
-            Physics.CheckSphere(_groundCheckerTransform.position, _checkerRadius, _groundLayer);
+
 
         public void Stun(float duration)
         {
@@ -221,13 +217,5 @@ namespace Components.Player
             _slowMultiplier = Mathf.Clamp(speedMultiplier, 0f, 1f);
             _slowEndTime = Time.time + duration;
         }
-
-#if UNITY_EDITOR
-        private void OnDrawGizmos()
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawSphere(_groundCheckerTransform.position, _checkerRadius);
-        }
-#endif
     }
 }
