@@ -276,6 +276,28 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: hud atlas_5
+      rect:
+        serializedVersion: 2
+        x: 395
+        y: 305
+        width: 590
+        height: 172
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3fba7d7896894154e9824fe73f4104ef
+      internalID: -1498085589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -296,6 +318,7 @@ TextureImporter:
       hud atlas_2: 782334335
       hud atlas_3: 707560966
       hud atlas_4: -1966809502
+      hud atlas_5: -1498085589
       hud atlas_6: -2112398681
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0

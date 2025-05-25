@@ -40,6 +40,11 @@ namespace Components.Player
         [SerializeField] private float _staminaDrainSprinting = 10f;
         [SerializeField] private float _staminaSprintThreshold = 10f;
 
+        [Header("Ceiling Check Settings")]
+        [SerializeField] private Transform _ceilCheckerTransform;
+        [SerializeField] private LayerMask _groundLayer;
+        [SerializeField] private float _checkerRadius = 0.2f;
+
         private float _currentStamina;
         private bool _isStaminaExhausted;
         private CharacterController _controller;
@@ -54,10 +59,8 @@ namespace Components.Player
         private Vector3 _motion;
 
         private bool _isStunned;
-
         private float _slowMultiplier = 1f;
         private float _slowEndTime = 0f;
-
         private float _verticalVelocity;
         private bool IsGrounded => _controller.isGrounded;
 
@@ -186,7 +189,17 @@ namespace Components.Player
 
         private void Crouch()
         {
-            _isCrouching = _input.Crouch;
+            if (_input.Crouch)
+            {
+                _isCrouching = true;
+            }
+            else if (_isCrouching)
+            {
+                if (!IsCeilingBlocked())
+                {
+                    _isCrouching = false;
+                }
+            }
 
             var targetHeight = _isCrouching ? _crouchHeight : _standHeight;
             var scale = transform.localScale;
@@ -198,7 +211,10 @@ namespace Components.Player
             _camera.transform.localPosition = cameraPosition;
         }
 
-
+        private bool IsCeilingBlocked()
+        {
+            return Physics.CheckSphere(_ceilCheckerTransform.position, _checkerRadius, _groundLayer);
+        }
 
         public void Stun(float duration)
         {
@@ -217,5 +233,16 @@ namespace Components.Player
             _slowMultiplier = Mathf.Clamp(speedMultiplier, 0f, 1f);
             _slowEndTime = Time.time + duration;
         }
+
+#if UNITY_EDITOR
+        private void OnDrawGizmos()
+        {
+            if (_ceilCheckerTransform != null)
+            {
+                Gizmos.color = Color.green;
+                Gizmos.DrawWireSphere(_ceilCheckerTransform.position, _checkerRadius);
+            }
+        }
+#endif
     }
 }

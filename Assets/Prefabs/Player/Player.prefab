@@ -387,6 +387,11 @@ MonoBehaviour:
   _staminaRecoveryWalking: 2
   _staminaDrainSprinting: 10
   _staminaSprintThreshold: 20
+  _ceilCheckerTransform: {fileID: 399605628030573610}
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  _checkerRadius: 0.2
 --- !u!114 &664214233681919601
 MonoBehaviour:
   m_ObjectHideFlags: 0
