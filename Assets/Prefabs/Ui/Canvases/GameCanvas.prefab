@@ -387,8 +387,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pageName: 7
-  openFade: {x: 0, y: 1, z: 0.2}
-  closeFade: {x: 1, y: 0, z: 0.2}
+  openFade: {x: 1, y: 1, z: 0}
+  closeFade: {x: 1, y: 1, z: 0}
   _group: {fileID: 33611156316269833}
   _continue: {fileID: 3467905800679405170}
   _restart: {fileID: 4232934464779612035}
@@ -3130,6 +3130,22 @@ PrefabInstance:
     - target: {fileID: 5923882011773523392, guid: 49ff650ca89291545a200aa8d78f07a6, type: 3}
       propertyPath: m_Name
       value: GameSettings
+      objectReference: {fileID: 0}
+    - target: {fileID: 8771992465489312133, guid: 49ff650ca89291545a200aa8d78f07a6, type: 3}
+      propertyPath: openFade.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8771992465489312133, guid: 49ff650ca89291545a200aa8d78f07a6, type: 3}
+      propertyPath: openFade.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8771992465489312133, guid: 49ff650ca89291545a200aa8d78f07a6, type: 3}
+      propertyPath: closeFade.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8771992465489312133, guid: 49ff650ca89291545a200aa8d78f07a6, type: 3}
+      propertyPath: closeFade.z
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
