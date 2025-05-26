@@ -18,6 +18,8 @@ namespace Components.Ui.Pages.Game
 
         private int _currentIndex = -1;
 
+        private PauseService _pauseService;
+
         [Inject]
         private void Construct(PauseService pauseService)
         {
@@ -26,6 +28,7 @@ namespace Components.Ui.Pages.Game
                 pauseService.Pause();
                 ShowNextTutorial();
             };
+            _pauseService = pauseService;
         }
 
         private void Awake()
@@ -33,6 +36,7 @@ namespace Components.Ui.Pages.Game
             _continue.onClick.AddListener(() =>
             {
                 PageSwitcher.Open(PageName.Stats).Forget();
+                _pauseService.Play();
             });
         }
 
