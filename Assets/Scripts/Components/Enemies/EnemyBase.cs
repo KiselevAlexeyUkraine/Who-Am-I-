@@ -151,13 +151,7 @@ namespace Components.Enemies
                 _agent.enabled = false;
             }
 
-            var rb = GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.isKinematic = false;
-            }
-
-            gameObject.layer = LayerMask.NameToLayer("Default");
+            gameObject.layer = LayerMask.NameToLayer("IgnorePlayer");
             enabled = false;
         }
 

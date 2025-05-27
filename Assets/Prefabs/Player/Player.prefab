@@ -372,9 +372,9 @@ MonoBehaviour:
   _camera: {fileID: 6971790961727192834}
   _sprintFovMultiplier: 1.15
   _fovTransitionSpeed: 10
-  _moveSpeed: 5
+  _moveSpeed: 4
   _sprintMultiplier: 1.5
-  _jumpForce: 4
+  _jumpForce: 4.5
   _gravity: -9.81
   _mouseSmoothTime: 0.01
   _maxLookAngle: 90
