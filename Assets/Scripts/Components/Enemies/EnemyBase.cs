@@ -59,6 +59,7 @@ namespace Components.Enemies
         private bool _isWaitingAtPatrol;
 
         private bool _isSlowed;
+        private bool _runningAI = false;
         private float _originalMoveSpeed;
         private float _originalChaseSpeed;
 
@@ -76,7 +77,7 @@ namespace Components.Enemies
             _agent.speed = _moveSpeed;
             _token = gameObject.GetCancellationTokenOnDestroy();
             _viewAngle = DefaultViewAngle;
-            PatrolLoop().Forget();
+            StartAI().Forget();
         }
 
         public void ApplySlow(float speedMultiplier, float duration)
@@ -156,9 +157,12 @@ namespace Components.Enemies
             enabled = false;
         }
 
-        private async UniTaskVoid PatrolLoop()
+        public async UniTaskVoid StartAI()
         {
-            while (true)
+            if (_runningAI) return;
+            _runningAI = true;
+
+            while (_runningAI && !_token.IsCancellationRequested)
             {
                 if (_isDead || _isStunned) { await UniTask.Yield(PlayerLoopTiming.Update, _token); continue; }
 
@@ -207,7 +211,6 @@ namespace Components.Enemies
                         _chaseMemoryTimer -= Time.deltaTime;
 
                     RotateTowardsPlayer();
-                    if (_isDead || _isStunned) break;
 
                     if (_chaseMemoryTimer <= 0f)
                     {
@@ -216,43 +219,25 @@ namespace Components.Enemies
                         _agent.speed = _moveSpeed;
                         _viewAngle = DefaultViewAngle;
                         LosePlayer();
-                        if (_debug) Debug.Log("[Enemy] Lost player after memory");
 
                         _waitingAfterLostPlayer = true;
                         OnIdle?.Invoke();
 
                         float rotateTime = 0f;
-                        while (rotateTime < _postLoseWaitTime)
+                        while (rotateTime < _postLoseWaitTime && !_isDead && !_isStunned)
                         {
-                            if (_isDead || _isStunned) break;
-
                             transform.Rotate(Vector3.up * _rotationSpeed);
                             rotateTime += Time.deltaTime;
                             await UniTask.Yield(PlayerLoopTiming.Update, _token);
 
-                            if (_isDead || _isStunned) break;
-
-                            _playerVisible = CanSeePlayer(false);
-                            if (_playerVisible)
+                            if (CanSeePlayer(false))
                             {
                                 float dist = Vector3.Distance(transform.position, _player.position);
-                                if (dist <= _stopChaseDistance)
-                                {
-                                    _isAttacking = true;
-                                    _isChasing = true;
-                                    _chaseMemoryTimer = _chaseMemoryDuration;
-                                    _agent.isStopped = true;
-                                    OnAttack?.Invoke();
-                                    if (_debug) Debug.Log("[Enemy] Reacquired and attacking");
-                                }
-                                else
-                                {
-                                    _isChasing = true;
-                                    _chaseMemoryTimer = _chaseMemoryDuration;
-                                    _agent.isStopped = false;
-                                    OnSeePlayer?.Invoke();
-                                    if (_debug) Debug.Log("[Enemy] Reacquired and chasing");
-                                }
+                                _isChasing = true;
+                                _chaseMemoryTimer = _chaseMemoryDuration;
+                                _isAttacking = dist <= _stopChaseDistance;
+                                _agent.isStopped = _isAttacking;
+                                OnAttack?.Invoke();
                                 break;
                             }
                         }
@@ -274,9 +259,7 @@ namespace Components.Enemies
                     if (!_waitingAfterLostPlayer && !_isWaitingAtPatrol)
                     {
                         _agent.speed = _moveSpeed;
-
                         if (CanSeePlayer(false)) continue;
-
                         await Patrol();
                     }
                 }
@@ -284,6 +267,12 @@ namespace Components.Enemies
                 await UniTask.Yield(PlayerLoopTiming.Update, _token);
             }
         }
+
+        public void StopAI()
+        {
+            _runningAI = false;
+        }
+
 
 
         protected virtual async UniTask Patrol()
