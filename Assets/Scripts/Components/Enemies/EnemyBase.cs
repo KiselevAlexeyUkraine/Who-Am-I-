@@ -1,3 +1,6 @@
+// Components/Enemies/EnemyBase.cs
+// Version with no infinite loop, full transitions, and correct attack logic + _attackEndDistance
+
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -51,23 +54,18 @@ namespace Components.Enemies
         protected bool _waitingAfterLostPlayer;
         protected bool _isDead;
         protected bool _isStunned;
-
-        private float _chaseMemoryTimer = 0f;
-        private int _currentPatrolIndex;
+        protected bool _isSlowed;
+        protected bool _isAttacking;
+        protected bool _isWaitingAtPatrol;
         private bool _playerVisible;
-        private bool _isAttacking;
-        private bool _isWaitingAtPatrol;
 
-        private bool _isSlowed;
-        private bool _runningAI = false;
+        private float _chaseMemoryTimer;
+        private int _currentPatrolIndex;
         private float _originalMoveSpeed;
         private float _originalChaseSpeed;
 
         [Inject]
-        private void Construct(PlayerComponent player)
-        {
-            _player = player.transform;
-        }
+        private void Construct(PlayerComponent player) => _player = player.transform;
 
         protected virtual void Start()
         {
@@ -77,21 +75,116 @@ namespace Components.Enemies
             _agent.speed = _moveSpeed;
             _token = gameObject.GetCancellationTokenOnDestroy();
             _viewAngle = DefaultViewAngle;
-            StartAI().Forget();
+
+            InvokeRepeating(nameof(AITick), 0f, 0.1f);
+        }
+
+        private void AITick()
+        {
+            if (_isDead || _isStunned) return;
+
+            _playerVisible = CanSeePlayer(_isChasing);
+            float distanceToPlayer = Vector3.Distance(transform.position, _player.position);
+
+            if (_playerVisible)
+            {
+                _chaseMemoryTimer = _chaseMemoryDuration;
+
+                if (distanceToPlayer <= _stopChaseDistance)
+                {
+                    if (!_isAttacking)
+                    {
+                        _isAttacking = true;
+                        _isChasing = true;
+                        _agent.isStopped = true;
+                        OnAttack?.Invoke();
+                        if (_debug) Debug.Log("[Enemy] Attack started");
+                    }
+                }
+                else if (distanceToPlayer > _attackEndDistance)
+                {
+                    if (_isAttacking)
+                    {
+                        _isAttacking = false;
+                        _agent.isStopped = false;
+                        OnSeePlayer?.Invoke();
+                        if (_debug) Debug.Log("[Enemy] Back to chase from attack");
+                    }
+                    if (!_isChasing)
+                    {
+                        _isChasing = true;
+                        OnSeePlayer?.Invoke();
+                        if (_debug) Debug.Log("[Enemy] Immediate chase");
+                    }
+                }
+            }
+            else
+            {
+                _chaseMemoryTimer -= 0.1f;
+            }
+
+            if (_isChasing)
+            {
+                _agent.speed = _chaseSpeed;
+                _viewAngle = ChaseViewAngle;
+                RotateTowardsPlayer();
+
+                if (_chaseMemoryTimer <= 0f)
+                {
+                    _isChasing = false;
+                    _agent.ResetPath();
+                    _agent.speed = _moveSpeed;
+                    _viewAngle = DefaultViewAngle;
+                    LosePlayer();
+                    OnIdle?.Invoke();
+                    if (_debug) Debug.Log("[Enemy] Lost player");
+                }
+                else if (!_isAttacking && distanceToPlayer > _stopChaseDistance)
+                {
+                    _agent.isStopped = false;
+                    _agent.SetDestination(_player.position);
+                }
+            }
+            else if (!_waitingAfterLostPlayer && !_isWaitingAtPatrol)
+            {
+                _agent.speed = _moveSpeed;
+                if (_playerVisible) return;
+                Patrol().Forget();
+            }
+        }
+
+        protected virtual async UniTask Patrol()
+        {
+            if (_patrolPoints.Length == 0) return;
+            if (!_agent.hasPath || _agent.remainingDistance < 0.5f)
+            {
+                _isWaitingAtPatrol = true;
+                OnIdle?.Invoke();
+                float elapsed = 0f;
+                while (elapsed < _waitBeforeNextPatrolPoint && !_isDead && !_isStunned)
+                {
+                    if (CanSeePlayer(false)) return;
+                    RotateTowardsNextPatrolPoint();
+                    await UniTask.Yield(PlayerLoopTiming.Update);
+                    elapsed += Time.deltaTime;
+                }
+                if (_isDead || _isStunned) return;
+
+                OnWalk?.Invoke();
+                _agent.SetDestination(_patrolPoints[_currentPatrolIndex].position);
+                _currentPatrolIndex = (_currentPatrolIndex + 1) % _patrolPoints.Length;
+                _isWaitingAtPatrol = false;
+            }
         }
 
         public void ApplySlow(float speedMultiplier, float duration)
         {
-            if (_debug) Debug.Log($"[Enemy] Slowed by x{speedMultiplier} for {duration} sec");
             if (_isDead || _isStunned || _isSlowed) return;
 
             _isSlowed = true;
-
             _moveSpeed *= speedMultiplier;
             _chaseSpeed *= speedMultiplier;
-
             _agent.speed = _isChasing ? _chaseSpeed : _moveSpeed;
-
             HandleSlow(duration).Forget();
         }
 
@@ -101,27 +194,21 @@ namespace Components.Enemies
             while (timer < duration)
             {
                 timer += Time.deltaTime;
-                await UniTask.Yield(PlayerLoopTiming.Update, _token);
+                await UniTask.Yield(PlayerLoopTiming.Update);
             }
-
             _moveSpeed = _originalMoveSpeed;
             _chaseSpeed = _originalChaseSpeed;
             _agent.speed = _isChasing ? _chaseSpeed : _moveSpeed;
-
             _isSlowed = false;
-            if (_debug) Debug.Log("[Enemy] Recovered from slow");
         }
 
         public void Stun(float duration)
         {
-            if (_debug) Debug.Log("[Enemy] Stunned for " + duration);
             if (_isDead || _isStunned) return;
-
             _isStunned = true;
             _agent.isStopped = true;
             _agent.ResetPath();
             OnIdle?.Invoke();
-
             HandleStun(duration).Forget();
         }
 
@@ -131,190 +218,27 @@ namespace Components.Enemies
             while (timer < duration)
             {
                 timer += Time.deltaTime;
-                await UniTask.Yield(PlayerLoopTiming.Update, _token);
+                await UniTask.Yield(PlayerLoopTiming.Update);
             }
-
             _isStunned = false;
             _agent.isStopped = false;
-            if (_debug) Debug.Log("[Enemy] Recovered from stun");
+
+            if (_isChasing)
+            {
+                OnSeePlayer?.Invoke();
+                if (_debug) Debug.Log("[Enemy] Resume chase after stun complete");
+            }
         }
 
         protected void MarkDead()
         {
-            if (_debug) Debug.Log("[Enemy] Died");
-
             _isDead = true;
             OnDeath?.Invoke();
-
-            if (_agent != null)
-            {
-                _agent.isStopped = true;
-                _agent.ResetPath();
-                _agent.enabled = false;
-            }
-
+            _agent.isStopped = true;
+            _agent.ResetPath();
+            _agent.enabled = false;
             gameObject.layer = LayerMask.NameToLayer("IgnorePlayer");
             enabled = false;
-        }
-
-        public async UniTaskVoid StartAI()
-        {
-            if (_runningAI) return;
-            _runningAI = true;
-
-            while (_runningAI && !_token.IsCancellationRequested)
-            {
-                if (_isDead || _isStunned) { await UniTask.Yield(PlayerLoopTiming.Update, _token); continue; }
-
-                _playerVisible = CanSeePlayer(_isChasing);
-                if (_isDead || _isStunned) break;
-
-                float distanceToPlayer = Vector3.Distance(transform.position, _player.position);
-
-                if (_playerVisible)
-                {
-                    if (distanceToPlayer <= _stopChaseDistance)
-                    {
-                        if (!_isAttacking)
-                        {
-                            _isAttacking = true;
-                            _isChasing = true;
-                            _chaseMemoryTimer = _chaseMemoryDuration;
-                            _agent.isStopped = true;
-                            OnAttack?.Invoke();
-                            if (_debug) Debug.Log("[Enemy] Attack started");
-                        }
-                    }
-                    else if (distanceToPlayer > _attackEndDistance)
-                    {
-                        if (_isAttacking)
-                        {
-                            _isAttacking = false;
-                            _agent.isStopped = false;
-                            OnSeePlayer?.Invoke();
-                            if (_debug) Debug.Log("[Enemy] Stopped attack, chasing again");
-                        }
-                        _isChasing = true;
-                        _chaseMemoryTimer = _chaseMemoryDuration;
-                    }
-                }
-
-                if (_isChasing)
-                {
-                    if (_isStunned) continue;
-                    _agent.speed = _chaseSpeed;
-                    _viewAngle = ChaseViewAngle;
-
-                    if (_playerVisible)
-                        _chaseMemoryTimer = _chaseMemoryDuration;
-                    else
-                        _chaseMemoryTimer -= Time.deltaTime;
-
-                    RotateTowardsPlayer();
-
-                    if (_chaseMemoryTimer <= 0f)
-                    {
-                        _isChasing = false;
-                        _agent.ResetPath();
-                        _agent.speed = _moveSpeed;
-                        _viewAngle = DefaultViewAngle;
-                        LosePlayer();
-
-                        _waitingAfterLostPlayer = true;
-                        OnIdle?.Invoke();
-
-                        float rotateTime = 0f;
-                        while (rotateTime < _postLoseWaitTime && !_isDead && !_isStunned)
-                        {
-                            transform.Rotate(Vector3.up * _rotationSpeed);
-                            rotateTime += Time.deltaTime;
-                            await UniTask.Yield(PlayerLoopTiming.Update, _token);
-
-                            if (CanSeePlayer(false))
-                            {
-                                float dist = Vector3.Distance(transform.position, _player.position);
-                                _isChasing = true;
-                                _chaseMemoryTimer = _chaseMemoryDuration;
-                                _isAttacking = dist <= _stopChaseDistance;
-                                _agent.isStopped = _isAttacking;
-                                OnAttack?.Invoke();
-                                break;
-                            }
-                        }
-
-                        _waitingAfterLostPlayer = false;
-                        _isAttacking = false;
-                        continue;
-                    }
-                    else if (!_isAttacking && distanceToPlayer > _stopChaseDistance)
-                    {
-                        _agent.isStopped = false;
-                        _agent.SetDestination(_player.position);
-                    }
-                }
-                else
-                {
-                    _viewAngle = DefaultViewAngle;
-
-                    if (!_waitingAfterLostPlayer && !_isWaitingAtPatrol)
-                    {
-                        _agent.speed = _moveSpeed;
-                        if (CanSeePlayer(false)) continue;
-                        await Patrol();
-                    }
-                }
-
-                await UniTask.Yield(PlayerLoopTiming.Update, _token);
-            }
-        }
-
-        public void StopAI()
-        {
-            _runningAI = false;
-        }
-
-
-
-        protected virtual async UniTask Patrol()
-        {
-            if (_isDead || _isStunned) return;
-            if (_patrolPoints.Length == 0) return;
-
-            if (!_agent.hasPath || _agent.remainingDistance < 0.5f)
-            {
-                if (_isDead || _isStunned) return;
-
-                _isWaitingAtPatrol = true;
-                OnIdle?.Invoke();
-
-                float elapsed = 0f;
-                while (elapsed < _waitBeforeNextPatrolPoint)
-                {
-                    if (_isDead || _isStunned) return;
-
-                    if (CanSeePlayer(false)) return;
-
-                    RotateTowardsNextPatrolPoint();
-                    await UniTask.Yield(PlayerLoopTiming.Update, _token);
-                    elapsed += Time.deltaTime;
-                }
-
-                if (_isDead || _isStunned) return;
-
-                OnWalk?.Invoke();
-
-                Vector3 direction = (_patrolPoints[_currentPatrolIndex].position - transform.position).normalized;
-                direction.y = 0f;
-                if (direction != Vector3.zero)
-                {
-                    Quaternion targetRotation = Quaternion.LookRotation(direction);
-                    transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime * 100f);
-                }
-
-                _agent.SetDestination(_patrolPoints[_currentPatrolIndex].position);
-                _currentPatrolIndex = (_currentPatrolIndex + 1) % _patrolPoints.Length;
-                _isWaitingAtPatrol = false;
-            }
         }
 
         protected bool CanSeePlayer(bool ignoreObstacles)
@@ -323,20 +247,17 @@ namespace Components.Enemies
 
             Vector3 origin = _viewOrigin ? _viewOrigin.position : transform.position;
             Vector3 directionToPlayer = _player.position - origin;
-            float distanceToPlayer = directionToPlayer.magnitude;
-            if (distanceToPlayer > _chaseDistance) return false;
+            float distance = directionToPlayer.magnitude;
+            if (distance > _chaseDistance) return false;
 
             float angle = Vector3.Angle(_viewOrigin.forward, directionToPlayer);
             if (angle > _viewAngle / 2f) return false;
 
-            LayerMask checkMask = _playerLayer | _obstacleLayers;
-            if (ignoreObstacles)
-                checkMask &= ~_ignoreWhileChasing;
+            LayerMask mask = _playerLayer | _obstacleLayers;
+            if (ignoreObstacles) mask &= ~_ignoreWhileChasing;
 
-            if (Physics.Raycast(origin, directionToPlayer.normalized, out var hit, _chaseDistance, checkMask))
-            {
-                if (hit.transform == _player) return true;
-            }
+            if (Physics.Raycast(origin, directionToPlayer.normalized, out var hit, _chaseDistance, mask))
+                return hit.transform == _player;
 
             return false;
         }
@@ -346,7 +267,6 @@ namespace Components.Enemies
             Vector3 direction = (_player.position - transform.position).normalized;
             direction.y = 0f;
             if (direction == Vector3.zero) return;
-
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime * 100f);
         }
@@ -354,11 +274,9 @@ namespace Components.Enemies
         private void RotateTowardsNextPatrolPoint()
         {
             if (_patrolPoints.Length == 0) return;
-
             Vector3 direction = (_patrolPoints[_currentPatrolIndex].position - transform.position).normalized;
             direction.y = 0f;
             if (direction == Vector3.zero) return;
-
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime * 100f);
         }
@@ -366,25 +284,18 @@ namespace Components.Enemies
         protected virtual void OnDrawGizmosSelected()
         {
             if (_viewOrigin == null) return;
-
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(_viewOrigin.position, _chaseDistance);
-
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(_viewOrigin.position, _stopChaseDistance);
 
             Vector3 forward = _viewOrigin.forward;
             float halfFOV = _viewAngle * 0.5f;
-
-            Quaternion leftRayRotation = Quaternion.Euler(0, -halfFOV, 0);
-            Quaternion rightRayRotation = Quaternion.Euler(0, halfFOV, 0);
-
-            Vector3 leftRayDirection = leftRayRotation * forward;
-            Vector3 rightRayDirection = rightRayRotation * forward;
-
+            Quaternion left = Quaternion.Euler(0, -halfFOV, 0);
+            Quaternion right = Quaternion.Euler(0, halfFOV, 0);
             Gizmos.color = Color.red;
-            Gizmos.DrawRay(_viewOrigin.position, leftRayDirection * _chaseDistance);
-            Gizmos.DrawRay(_viewOrigin.position, rightRayDirection * _chaseDistance);
+            Gizmos.DrawRay(_viewOrigin.position, left * forward * _chaseDistance);
+            Gizmos.DrawRay(_viewOrigin.position, right * forward * _chaseDistance);
 
             if (_player != null)
             {
@@ -393,11 +304,7 @@ namespace Components.Enemies
             }
         }
 
-        public virtual void LosePlayer()
-        {
-            OnLosePlayer?.Invoke();
-        }
-
+        public virtual void LosePlayer() => OnLosePlayer?.Invoke();
         public abstract EnemyType GetEnemyType();
     }
 }
