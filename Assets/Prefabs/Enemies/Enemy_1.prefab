@@ -259,11 +259,12 @@ MonoBehaviour:
   - {fileID: 6855828420719458256}
   - {fileID: 6452950649373474455}
   _moveSpeed: 2
-  _chaseSpeed: 6
+  _chaseSpeed: 3
   _rotationSpeed: 3
   _chaseDistance: 10
   DefaultViewAngle: 200
   _stopChaseDistance: 2
+  _attackEndDistance: 4
   _postLoseWaitTime: 2
   _waitBeforeNextPatrolPoint: 2
   _chaseMemoryDuration: 3

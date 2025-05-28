@@ -31,6 +31,7 @@ namespace Components.Enemies
         [SerializeField] protected float _chaseDistance = 15f;
         [SerializeField] private float DefaultViewAngle = 90f;
         [SerializeField] protected float _stopChaseDistance = 2f;
+        [SerializeField] private float _attackEndDistance = 3f;
         [SerializeField] protected float _postLoseWaitTime = 2f;
         [SerializeField] protected float _waitBeforeNextPatrolPoint = 1f;
         [SerializeField] protected float _chaseMemoryDuration = 3f;
@@ -164,26 +165,33 @@ namespace Components.Enemies
                 _playerVisible = CanSeePlayer(_isChasing);
                 if (_isDead || _isStunned) break;
 
+                float distanceToPlayer = Vector3.Distance(transform.position, _player.position);
+
                 if (_playerVisible)
                 {
-                    float dist = Vector3.Distance(transform.position, _player.position);
-
-                    if (dist <= _stopChaseDistance)
+                    if (distanceToPlayer <= _stopChaseDistance)
                     {
-                        _isAttacking = true;
-                        _isChasing = true;
-                        _chaseMemoryTimer = _chaseMemoryDuration;
-                        _agent.isStopped = true;
-                        OnAttack?.Invoke();
-                        if (_debug) Debug.Log("[Enemy] Immediate Attack");
+                        if (!_isAttacking)
+                        {
+                            _isAttacking = true;
+                            _isChasing = true;
+                            _chaseMemoryTimer = _chaseMemoryDuration;
+                            _agent.isStopped = true;
+                            OnAttack?.Invoke();
+                            if (_debug) Debug.Log("[Enemy] Attack started");
+                        }
                     }
-                    else
+                    else if (distanceToPlayer > _attackEndDistance)
                     {
+                        if (_isAttacking)
+                        {
+                            _isAttacking = false;
+                            _agent.isStopped = false;
+                            OnSeePlayer?.Invoke();
+                            if (_debug) Debug.Log("[Enemy] Stopped attack, chasing again");
+                        }
                         _isChasing = true;
                         _chaseMemoryTimer = _chaseMemoryDuration;
-                        _agent.isStopped = false;
-                        OnSeePlayer?.Invoke();
-                        if (_debug) Debug.Log("[Enemy] Immediate Chase");
                     }
                 }
 
@@ -192,8 +200,6 @@ namespace Components.Enemies
                     if (_isStunned) continue;
                     _agent.speed = _chaseSpeed;
                     _viewAngle = ChaseViewAngle;
-
-                    float distanceToPlayer = Vector3.Distance(transform.position, _player.position);
 
                     if (_playerVisible)
                         _chaseMemoryTimer = _chaseMemoryDuration;
@@ -237,7 +243,7 @@ namespace Components.Enemies
                                     _chaseMemoryTimer = _chaseMemoryDuration;
                                     _agent.isStopped = true;
                                     OnAttack?.Invoke();
-                                    if (_debug) Debug.Log("[Enemy] Reacquired and Attacking while rotating");
+                                    if (_debug) Debug.Log("[Enemy] Reacquired and attacking");
                                 }
                                 else
                                 {
@@ -245,7 +251,7 @@ namespace Components.Enemies
                                     _chaseMemoryTimer = _chaseMemoryDuration;
                                     _agent.isStopped = false;
                                     OnSeePlayer?.Invoke();
-                                    if (_debug) Debug.Log("[Enemy] Reacquired and Chasing while rotating");
+                                    if (_debug) Debug.Log("[Enemy] Reacquired and chasing");
                                 }
                                 break;
                             }
@@ -255,27 +261,10 @@ namespace Components.Enemies
                         _isAttacking = false;
                         continue;
                     }
-                    else if (distanceToPlayer > _stopChaseDistance)
+                    else if (!_isAttacking && distanceToPlayer > _stopChaseDistance)
                     {
-                        if (_isAttacking)
-                        {
-                            _isAttacking = false;
-                            OnSeePlayer?.Invoke();
-                            if (_debug) Debug.Log("[Enemy] Back to Chase from Attack");
-                        }
-
                         _agent.isStopped = false;
                         _agent.SetDestination(_player.position);
-                    }
-                    else
-                    {
-                        if (!_isAttacking && _playerVisible)
-                        {
-                            _isAttacking = true;
-                            _agent.isStopped = true;
-                            OnAttack?.Invoke();
-                            if (_debug) Debug.Log("[Enemy] Attack!");
-                        }
                     }
                 }
                 else
@@ -286,10 +275,7 @@ namespace Components.Enemies
                     {
                         _agent.speed = _moveSpeed;
 
-                        if (CanSeePlayer(false))
-                        {
-                            continue;
-                        }
+                        if (CanSeePlayer(false)) continue;
 
                         await Patrol();
                     }
@@ -298,6 +284,7 @@ namespace Components.Enemies
                 await UniTask.Yield(PlayerLoopTiming.Update, _token);
             }
         }
+
 
         protected virtual async UniTask Patrol()
         {
