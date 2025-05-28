@@ -60,13 +60,18 @@ namespace Components.Props
             if (!_useKey || (_useKey && _inventory.HasKey(requiredKey)))
             {
                 if (_useKey)
+                {
                     _inventory.UseKey(requiredKey);
+                }
+
+                _audioService?.PlayOneShot(_openDoor);
+                gameObject.layer = LayerMask.NameToLayer("Default");
 
                 transform.DORotateQuaternion(_targetRotation, _openDuration)
                          .OnComplete(() =>
                          {
                              isOpen = true;
-                             gameObject.layer = LayerMask.NameToLayer("Default");
+
 
                              if (_isFinalDoor)
                              {
@@ -74,8 +79,6 @@ namespace Components.Props
                                  CompleteLevel();
                              }
                          });
-
-                _audioService?.PlayOneShot(_openDoor);
             }
             else
             {
