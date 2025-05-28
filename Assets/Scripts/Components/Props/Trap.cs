@@ -24,10 +24,9 @@ namespace Components.Props
 
         private Collider triggerCollider;
 
-
         private bool isActive = false;
         private bool isAnimating = false;
-
+        private bool hasDealtDamage = false;
 
         private void Start()
         {
@@ -56,6 +55,8 @@ namespace Components.Props
             if (isAnimating) return;
 
             isAnimating = true;
+            hasDealtDamage = false;
+
             movingPart.DOLocalMoveY(activeY, moveDuration)
                       .SetEase(moveEase)
                       .SetUpdate(true)
@@ -72,20 +73,21 @@ namespace Components.Props
             if (isAnimating) return;
 
             isAnimating = true;
+            isActive = false;
+
             movingPart.DOLocalMoveY(inactiveY, moveDuration)
                       .SetEase(moveEase)
                       .SetUpdate(true)
                       .OnComplete(() =>
                       {
                           isAnimating = false;
-                          isActive = false;
                           Debug.Log($"Trap [{trapType}] deactivated at Y:{inactiveY}");
                       });
         }
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!isActive) return;
+            if (!isActive || hasDealtDamage) return;
 
             int layerMask = 1 << other.gameObject.layer;
             if ((enemyLayer.value & layerMask) == 0) return;
@@ -94,6 +96,8 @@ namespace Components.Props
             {
                 victim.TakeDamage(damage);
                 Debug.Log($"Trap [{trapType}] dealt {damage} to {other.name}");
+
+                hasDealtDamage = true;
                 DeactivateTrap();
             }
         }
