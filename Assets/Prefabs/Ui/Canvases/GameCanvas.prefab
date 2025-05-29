@@ -457,7 +457,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pageName: 12
-  openFade: {x: 2, y: 0, z: 1}
+  openFade: {x: 1, y: 1, z: 1}
   closeFade: {x: 0, y: 0, z: 0}
   _group: {fileID: 3891424199519905846}
 --- !u!1 &1396079727911971689
@@ -1252,8 +1252,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pageName: 15
-  openFade: {x: 0, y: 1, z: 0.5}
-  closeFade: {x: 0, y: 0, z: 0}
+  openFade: {x: 1, y: 1, z: 1}
+  closeFade: {x: 0, y: 0, z: 0.2}
   _group: {fileID: 8535766457061617071}
 --- !u!1 &5612321257960741699
 GameObject:

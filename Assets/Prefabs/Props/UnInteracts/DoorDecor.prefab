@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7115873315574690300}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: DoorDecor
-  m_TagString: Item
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -171,7 +171,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2183070755723054125}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: door_001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -207,7 +207,7 @@ GameObject:
   - component: {fileID: 5838897671120303389}
   - component: {fileID: 1957326333059162663}
   - component: {fileID: 1808220226671385428}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: door_001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
