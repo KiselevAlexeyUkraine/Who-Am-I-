@@ -5256,9 +5256,13 @@ PrefabInstance:
       propertyPath: MaxDistance
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 898973909466460296, guid: f59496e8a256b014183c65002409b130, type: 3}
+      propertyPath: m_Height
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 4586553590429893490, guid: f59496e8a256b014183c65002409b130, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -16.41
+      value: -16
       objectReference: {fileID: 0}
     - target: {fileID: 4586553590429893490, guid: f59496e8a256b014183c65002409b130, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5299,22 +5303,6 @@ PrefabInstance:
     - target: {fileID: 4832664244654282078, guid: f59496e8a256b014183c65002409b130, type: 3}
       propertyPath: m_Name
       value: Gastrap (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 7569948010358919044, guid: f59496e8a256b014183c65002409b130, type: 3}
-      propertyPath: m_Radius
-      value: 3.6361563
-      objectReference: {fileID: 0}
-    - target: {fileID: 7569948010358919044, guid: f59496e8a256b014183c65002409b130, type: 3}
-      propertyPath: m_Center.x
-      value: 1.92
-      objectReference: {fileID: 0}
-    - target: {fileID: 7569948010358919044, guid: f59496e8a256b014183c65002409b130, type: 3}
-      propertyPath: m_Center.y
-      value: -1.07
-      objectReference: {fileID: 0}
-    - target: {fileID: 7569948010358919044, guid: f59496e8a256b014183c65002409b130, type: 3}
-      propertyPath: m_Center.z
-      value: 0.95
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5764,13 +5752,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 776132504072617841, guid: f59496e8a256b014183c65002409b130, type: 3}
-      propertyPath: MaxDistance
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 4586553590429893490, guid: f59496e8a256b014183c65002409b130, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -23.38
+      value: -23
       objectReference: {fileID: 0}
     - target: {fileID: 4586553590429893490, guid: f59496e8a256b014183c65002409b130, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5778,7 +5762,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4586553590429893490, guid: f59496e8a256b014183c65002409b130, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -54.16
+      value: -53
       objectReference: {fileID: 0}
     - target: {fileID: 4586553590429893490, guid: f59496e8a256b014183c65002409b130, type: 3}
       propertyPath: m_LocalRotation.w
@@ -5811,22 +5795,6 @@ PrefabInstance:
     - target: {fileID: 4832664244654282078, guid: f59496e8a256b014183c65002409b130, type: 3}
       propertyPath: m_Name
       value: Gastrap
-      objectReference: {fileID: 0}
-    - target: {fileID: 7569948010358919044, guid: f59496e8a256b014183c65002409b130, type: 3}
-      propertyPath: m_Radius
-      value: 3.13
-      objectReference: {fileID: 0}
-    - target: {fileID: 7569948010358919044, guid: f59496e8a256b014183c65002409b130, type: 3}
-      propertyPath: m_Center.x
-      value: -1.68
-      objectReference: {fileID: 0}
-    - target: {fileID: 7569948010358919044, guid: f59496e8a256b014183c65002409b130, type: 3}
-      propertyPath: m_Center.y
-      value: -1.49
-      objectReference: {fileID: 0}
-    - target: {fileID: 7569948010358919044, guid: f59496e8a256b014183c65002409b130, type: 3}
-      propertyPath: m_Center.z
-      value: 0.24
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
