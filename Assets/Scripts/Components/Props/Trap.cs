@@ -43,10 +43,6 @@ namespace Components.Props
                 return;
             }
 
-            Vector3 initialPos = movingPart.localPosition;
-            initialPos.y = inactiveY;
-            movingPart.localPosition = initialPos;
-
             ActivateTrap();
         }
 
