@@ -249,7 +249,7 @@ MonoBehaviour:
   gasTriggerClip: {fileID: 8300000, guid: 4724138fa7615ec47a9799b8ae0fbdf0, type: 3}
   gasLoopClip: {fileID: 8300000, guid: 7bb3848a842f4ae4caea98c22ffe43a2, type: 3}
   damage: 20
-  slowMultiplier: 0.2
+  slowMultiplier: 0.4
   slowDuration: 10
   targetLayer:
     serializedVersion: 2
