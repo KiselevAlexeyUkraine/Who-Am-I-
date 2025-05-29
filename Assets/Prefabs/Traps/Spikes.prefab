@@ -55,7 +55,7 @@ MonoBehaviour:
   activeY: -2
   inactiveY: 0
   moveDuration: 1
-  moveEase: 4
+  moveEase: 1
 --- !u!65 &4311962343209483053
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -75,8 +75,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 0.5, z: 2}
-  m_Center: {x: 0, y: 0.2, z: 0}
+  m_Size: {x: 1.594881, y: 0.5, z: 1.5427322}
+  m_Center: {x: 0.014342308, y: 0.19999999, z: -0.036319733}
 --- !u!1001 &8403815134803540413
 PrefabInstance:
   m_ObjectHideFlags: 0
