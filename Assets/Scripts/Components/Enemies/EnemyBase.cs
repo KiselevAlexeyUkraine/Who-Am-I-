@@ -1,6 +1,3 @@
-// Components/Enemies/EnemyBase.cs
-// Version with no infinite loop, full transitions, and correct attack logic + _attackEndDistance
-
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -8,7 +5,6 @@ using UnityEngine;
 using UnityEngine.AI;
 using Components.Player;
 using Zenject;
-using Components;
 
 namespace Components.Enemies
 {
@@ -21,16 +17,16 @@ namespace Components.Enemies
         public event Action OnWalk;
         public event Action OnDeath;
 
-        [Header("Stats")]
+        [Header("Характеристики")]
         [SerializeField] protected int _maxHealth = 100;
 
-        [Header("Movement")]
+        [Header("Передвижение")]
         [SerializeField] protected Transform[] _patrolPoints;
         [SerializeField] protected float _moveSpeed = 2f;
         [SerializeField] protected float _chaseSpeed = 4f;
         [SerializeField] protected float _rotationSpeed = 5f;
 
-        [Header("Detection")]
+        [Header("Обнаружение")]
         [SerializeField] protected float _chaseDistance = 15f;
         [SerializeField] private float DefaultViewAngle = 90f;
         [SerializeField] protected float _stopChaseDistance = 2f;
@@ -73,6 +69,8 @@ namespace Components.Enemies
             _originalMoveSpeed = _moveSpeed;
             _originalChaseSpeed = _chaseSpeed;
             _agent.speed = _moveSpeed;
+            _agent.angularSpeed = _rotationSpeed * 100f;
+            _agent.updateRotation = true;
             _token = gameObject.GetCancellationTokenOnDestroy();
             _viewAngle = DefaultViewAngle;
 
@@ -98,7 +96,7 @@ namespace Components.Enemies
                         _isChasing = true;
                         _agent.isStopped = true;
                         OnAttack?.Invoke();
-                        if (_debug) Debug.Log("[Enemy] Attack started");
+                        if (_debug) Debug.Log("[Enemy] Атака начата");
                     }
                 }
                 else if (distanceToPlayer > _attackEndDistance)
@@ -108,13 +106,13 @@ namespace Components.Enemies
                         _isAttacking = false;
                         _agent.isStopped = false;
                         OnSeePlayer?.Invoke();
-                        if (_debug) Debug.Log("[Enemy] Back to chase from attack");
+                        if (_debug) Debug.Log("[Enemy] Возврат к преследованию из атаки");
                     }
                     if (!_isChasing)
                     {
                         _isChasing = true;
                         OnSeePlayer?.Invoke();
-                        if (_debug) Debug.Log("[Enemy] Immediate chase");
+                        if (_debug) Debug.Log("[Enemy] Немедленное преследование");
                     }
                 }
             }
@@ -127,7 +125,6 @@ namespace Components.Enemies
             {
                 _agent.speed = _chaseSpeed;
                 _viewAngle = ChaseViewAngle;
-                RotateTowardsPlayer();
 
                 if (_chaseMemoryTimer <= 0f)
                 {
@@ -137,7 +134,7 @@ namespace Components.Enemies
                     _viewAngle = DefaultViewAngle;
                     LosePlayer();
                     OnIdle?.Invoke();
-                    if (_debug) Debug.Log("[Enemy] Lost player");
+                    if (_debug) Debug.Log("[Enemy] Потерял игрока");
                 }
                 else if (!_isAttacking && distanceToPlayer > _stopChaseDistance)
                 {
@@ -164,7 +161,6 @@ namespace Components.Enemies
                 while (elapsed < _waitBeforeNextPatrolPoint && !_isDead && !_isStunned)
                 {
                     if (CanSeePlayer(false)) return;
-                    RotateTowardsNextPatrolPoint();
                     await UniTask.Yield(PlayerLoopTiming.Update);
                     elapsed += Time.deltaTime;
                 }
@@ -226,7 +222,7 @@ namespace Components.Enemies
             if (_isChasing)
             {
                 OnSeePlayer?.Invoke();
-                if (_debug) Debug.Log("[Enemy] Resume chase after stun complete");
+                if (_debug) Debug.Log("[Enemy] Возобновил преследование после оглушения");
             }
         }
 
@@ -262,24 +258,8 @@ namespace Components.Enemies
             return false;
         }
 
-        private void RotateTowardsPlayer()
-        {
-            Vector3 direction = (_player.position - transform.position).normalized;
-            direction.y = 0f;
-            if (direction == Vector3.zero) return;
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime * 100f);
-        }
-
-        private void RotateTowardsNextPatrolPoint()
-        {
-            if (_patrolPoints.Length == 0) return;
-            Vector3 direction = (_patrolPoints[_currentPatrolIndex].position - transform.position).normalized;
-            direction.y = 0f;
-            if (direction == Vector3.zero) return;
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime * 100f);
-        }
+        private void RotateTowardsPlayer() { }
+        private void RotateTowardsNextPatrolPoint() { }
 
         protected virtual void OnDrawGizmosSelected()
         {

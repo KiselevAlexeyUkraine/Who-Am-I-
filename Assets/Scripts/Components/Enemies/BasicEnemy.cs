@@ -15,6 +15,10 @@ namespace Components.Enemies
         [Header("Chase Settings")]
         [SerializeField] private float _chaseTimeout = 3f;
 
+        [Header("Ragdoll Settings")]
+        [SerializeField] private Rigidbody[] _ragdollBodies;
+        [SerializeField] private Collider[] _ragdollColliders;
+
         private float _chaseTimer;
         private bool _isPlayerVisible;
         private int _currentHealth;
@@ -36,6 +40,8 @@ namespace Components.Enemies
             OnDeath += HandleDeath;
 
             _playerLayer = LayerMask.GetMask("Player");
+
+            SetRagdollState(false);
         }
 
         private void OnDestroy()
@@ -93,8 +99,30 @@ namespace Components.Enemies
 
         private void HandleDeath()
         {
-            _animator.enabled = false;
             _source.enabled = false;
+            SetRagdollState(true);
+        }
+
+        private void SetRagdollState(bool state)
+        {
+            _animator.enabled = !state;
+
+            foreach (var rb in _ragdollBodies)
+            {
+                rb.isKinematic = !state;
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+
+            foreach (var col in _ragdollColliders)
+            {
+                col.enabled = state;
+            }
+
+            if (TryGetComponent<Collider>(out var mainCollider))
+                mainCollider.enabled = !state;
+            if (TryGetComponent<Rigidbody>(out var mainRb))
+                mainRb.isKinematic = state;
         }
 
         public override EnemyType GetEnemyType() => EnemyType.Basic;
