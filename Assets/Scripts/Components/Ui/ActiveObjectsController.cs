@@ -21,8 +21,6 @@ namespace Components.Ui
             switch (sceneIndex)
             {
                 case 2:
-                    SetActiveObjects(0);
-                    break;
                 case 3:
                     SetActiveObjects(2);
                     break;
