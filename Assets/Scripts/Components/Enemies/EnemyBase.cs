@@ -155,6 +155,8 @@ namespace Components.Enemies
         {
             if (_patrolPoints.Length == 0) return;
 
+            if (_agent == null || !_agent.isActiveAndEnabled || !_agent.isOnNavMesh) return;
+
             if (_agent.hasPath && _agent.remainingDistance > _agent.stoppingDistance)
                 return;
 
@@ -169,7 +171,7 @@ namespace Components.Enemies
                 elapsed += Time.deltaTime;
             }
 
-            if (_isDead || _isStunned) return;
+            if (_isDead || _isStunned || !_agent.isOnNavMesh) return;
 
             OnWalk?.Invoke();
             Vector3 targetPos = _patrolPoints[_currentPatrolIndex].position;
@@ -178,6 +180,8 @@ namespace Components.Enemies
 
             while (!_isDead && !_isStunned && !_playerVisible)
             {
+                if (!_agent.isOnNavMesh) break;
+
                 if (_agent.pathPending)
                 {
                     await UniTask.Yield(PlayerLoopTiming.Update);

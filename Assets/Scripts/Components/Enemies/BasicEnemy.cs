@@ -110,8 +110,11 @@ namespace Components.Enemies
             foreach (var rb in _ragdollBodies)
             {
                 rb.isKinematic = !state;
-                rb.linearVelocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
+                if (state)
+                {
+                    rb.linearVelocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                }
             }
 
             foreach (var col in _ragdollColliders)
@@ -121,6 +124,7 @@ namespace Components.Enemies
 
             if (TryGetComponent<Collider>(out var mainCollider))
                 mainCollider.enabled = !state;
+
             if (TryGetComponent<Rigidbody>(out var mainRb))
                 mainRb.isKinematic = state;
         }
@@ -140,7 +144,7 @@ namespace Components.Enemies
                 if (hit.collider.TryGetComponent<IDamageable>(out var damageable))
                 {
                     damageable.TakeDamage(_damageAmount);
-                    Debug.Log($"Ударили игрока: {hit.collider.name}");
+                    Debug.Log($"пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: {hit.collider.name}");
                     break;
                 }
             }
