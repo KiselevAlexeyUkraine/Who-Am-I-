@@ -113,7 +113,7 @@ namespace Components.Interaction
                             _inventory?.AddKey(KeyType.Yellow);
                             break;
                         case PickupItemType.Note:
-                            _inventory?.AddNote(target.name); // You can use a custom ID component instead
+                            _inventory?.AddNote(target.name);
                             break;
                         case PickupItemType.Unknown:
                             IInteractable interactable = hit.collider.GetComponent<IInteractable>();
