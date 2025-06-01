@@ -28,6 +28,10 @@ namespace Components.Ui
                 case 5:
                     SetActiveObjects(4);
                     break;
+                case 6:
+                case 7:
+                    SetActiveObjects(6);
+                    break;
                 default:
                     SetActiveObjects(Mathf.Clamp(activeCount * 2, 0, 6));
                     break;
