@@ -24,7 +24,6 @@ namespace Components.Enemies
         [SerializeField] protected Transform[] _patrolPoints;
         [SerializeField] protected float _moveSpeed = 2f;
         [SerializeField] protected float _chaseSpeed = 4f;
-        [SerializeField] protected float _rotationSpeed = 5f;
 
         [Header("Detection")]
         [SerializeField] protected float _chaseDistance = 15f;
@@ -69,14 +68,10 @@ namespace Components.Enemies
             _originalMoveSpeed = _moveSpeed;
             _originalChaseSpeed = _chaseSpeed;
             _agent.speed = _moveSpeed;
-            _agent.angularSpeed = _rotationSpeed * 100f;
             _agent.updateRotation = true;
-            _agent.stoppingDistance = 0f;
             _token = gameObject.GetCancellationTokenOnDestroy();
             _viewAngle = DefaultViewAngle;
 
-            _currentPatrolIndex = 0;
-            Patrol().Forget();
             InvokeRepeating(nameof(AITick), 0f, 0.1f);
         }
 
@@ -89,14 +84,6 @@ namespace Components.Enemies
 
             if (_playerVisible)
             {
-                if (!_isChasing)
-                {
-                    _isChasing = true;
-                    _agent.ResetPath();
-                    OnSeePlayer?.Invoke();
-                    if (_debug) Debug.Log("[Enemy] Увидел игрока");
-                }
-
                 _chaseMemoryTimer = _chaseMemoryDuration;
 
                 if (distanceToPlayer <= _stopChaseDistance)
@@ -104,10 +91,10 @@ namespace Components.Enemies
                     if (!_isAttacking)
                     {
                         _isAttacking = true;
+                        _isChasing = true;
                         _agent.isStopped = true;
-                        RotateTowardsPlayer();
                         OnAttack?.Invoke();
-                        if (_debug) Debug.Log("[Enemy] Атака начата");
+                        if (_debug) Debug.Log("[Enemy] Attack started");
                     }
                 }
                 else if (distanceToPlayer > _attackEndDistance)
@@ -117,7 +104,13 @@ namespace Components.Enemies
                         _isAttacking = false;
                         _agent.isStopped = false;
                         OnSeePlayer?.Invoke();
-                        if (_debug) Debug.Log("[Enemy] Прекращение атаки");
+                        if (_debug) Debug.Log("[Enemy] Back to chase from attack");
+                    }
+                    if (!_isChasing)
+                    {
+                        _isChasing = true;
+                        OnSeePlayer?.Invoke();
+                        if (_debug) Debug.Log("[Enemy] Immediate chase");
                     }
                 }
             }
@@ -129,31 +122,30 @@ namespace Components.Enemies
             if (_isChasing)
             {
                 _agent.speed = _chaseSpeed;
-                _agent.stoppingDistance = _stopChaseDistance;
                 _viewAngle = ChaseViewAngle;
 
                 if (_chaseMemoryTimer <= 0f)
                 {
                     _isChasing = false;
-                    _isAttacking = false;
                     _agent.ResetPath();
                     _agent.speed = _moveSpeed;
-                    _agent.stoppingDistance = 0f;
                     _viewAngle = DefaultViewAngle;
-                    OnLosePlayer?.Invoke();
+                    LosePlayer();
                     OnIdle?.Invoke();
-                    if (_debug) Debug.Log("[Enemy] Потерял игрока");
+                    if (_debug) Debug.Log("[Enemy] Lost player");
                 }
                 else if (!_isAttacking && distanceToPlayer > _stopChaseDistance)
                 {
                     _agent.isStopped = false;
-                    _agent.SetDestination(_player.position);
+                    if (!_agent.hasPath || _agent.remainingDistance > 0.5f)
+                    {
+                        _agent.SetDestination(_player.position);
+                    }
                 }
             }
             else if (!_waitingAfterLostPlayer && !_isWaitingAtPatrol)
             {
                 _agent.speed = _moveSpeed;
-                _agent.stoppingDistance = 0f;
                 if (_playerVisible) return;
                 Patrol().Forget();
             }
@@ -163,8 +155,12 @@ namespace Components.Enemies
         {
             if (_patrolPoints.Length == 0) return;
 
+            if (_agent.hasPath && _agent.remainingDistance > _agent.stoppingDistance)
+                return;
+
             _isWaitingAtPatrol = true;
             OnIdle?.Invoke();
+
             float elapsed = 0f;
             while (elapsed < _waitBeforeNextPatrolPoint && !_isDead && !_isStunned)
             {
@@ -172,24 +168,32 @@ namespace Components.Enemies
                 await UniTask.Yield(PlayerLoopTiming.Update);
                 elapsed += Time.deltaTime;
             }
+
             if (_isDead || _isStunned) return;
 
             OnWalk?.Invoke();
-            _agent.SetDestination(_patrolPoints[_currentPatrolIndex].position);
+            Vector3 targetPos = _patrolPoints[_currentPatrolIndex].position;
+            _agent.SetDestination(targetPos);
+            _currentPatrolIndex = (_currentPatrolIndex + 1) % _patrolPoints.Length;
 
-            while (!_isDead && !_isStunned && !_isChasing && _agent.isOnNavMesh)
+            while (!_isDead && !_isStunned && !_playerVisible)
             {
-                if (_agent.pathPending || _agent.remainingDistance > _agent.stoppingDistance + 0.1f)
+                if (_agent.pathPending)
                 {
                     await UniTask.Yield(PlayerLoopTiming.Update);
                     continue;
                 }
-                break;
+
+                if (_agent.remainingDistance <= _agent.stoppingDistance)
+                {
+                    if (!_agent.hasPath || _agent.velocity.sqrMagnitude == 0f)
+                        break;
+                }
+
+                await UniTask.Yield(PlayerLoopTiming.Update);
             }
 
-            _currentPatrolIndex = (_currentPatrolIndex + 1) % _patrolPoints.Length;
             _isWaitingAtPatrol = false;
-            Patrol().Forget();
         }
 
         public void ApplySlow(float speedMultiplier, float duration)
@@ -241,7 +245,7 @@ namespace Components.Enemies
             if (_isChasing)
             {
                 OnSeePlayer?.Invoke();
-                if (_debug) Debug.Log("[Enemy] Возобновил преследование после оглушения");
+                if (_debug) Debug.Log("[Enemy] Resume chase after stun complete");
             }
         }
 
@@ -275,15 +279,6 @@ namespace Components.Enemies
                 return hit.transform == _player;
 
             return false;
-        }
-
-        private void RotateTowardsPlayer()
-        {
-            Vector3 direction = (_player.position - transform.position).normalized;
-            direction.y = 0f;
-            if (direction == Vector3.zero) return;
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime * 100f);
         }
 
         protected virtual void OnDrawGizmosSelected()
