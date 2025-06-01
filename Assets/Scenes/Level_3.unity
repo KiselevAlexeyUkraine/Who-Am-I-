@@ -1652,6 +1652,10 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 11.963427
       objectReference: {fileID: 0}
+    - target: {fileID: 4466464523345079205, guid: ae234e120ca8a4240b7bc3f5f3ae1b08, type: 3}
+      propertyPath: _attackRange
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 6710385979066854210, guid: ae234e120ca8a4240b7bc3f5f3ae1b08, type: 3}
       propertyPath: m_Name
       value: Enemy_1 (3)

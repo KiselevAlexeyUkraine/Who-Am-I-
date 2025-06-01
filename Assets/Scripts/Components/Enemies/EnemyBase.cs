@@ -127,6 +127,7 @@ namespace Components.Enemies
                 if (_chaseMemoryTimer <= 0f)
                 {
                     _isChasing = false;
+                    _isAttacking = false;
                     _agent.ResetPath();
                     _agent.speed = _moveSpeed;
                     _viewAngle = DefaultViewAngle;
@@ -154,11 +155,8 @@ namespace Components.Enemies
         protected virtual async UniTask Patrol()
         {
             if (_patrolPoints.Length == 0) return;
-
             if (_agent == null || !_agent.isActiveAndEnabled || !_agent.isOnNavMesh) return;
-
-            if (_agent.hasPath && _agent.remainingDistance > _agent.stoppingDistance)
-                return;
+            if (_agent.hasPath && _agent.remainingDistance > _agent.stoppingDistance) return;
 
             _isWaitingAtPatrol = true;
             OnIdle?.Invoke();
@@ -181,7 +179,6 @@ namespace Components.Enemies
             while (!_isDead && !_isStunned && !_playerVisible)
             {
                 if (!_agent.isOnNavMesh) break;
-
                 if (_agent.pathPending)
                 {
                     await UniTask.Yield(PlayerLoopTiming.Update);
@@ -308,7 +305,12 @@ namespace Components.Enemies
             }
         }
 
-        public virtual void LosePlayer() => OnLosePlayer?.Invoke();
+        public virtual void LosePlayer()
+        {
+            _isAttacking = false;
+            OnLosePlayer?.Invoke();
+        }
+
         public abstract EnemyType GetEnemyType();
     }
 }

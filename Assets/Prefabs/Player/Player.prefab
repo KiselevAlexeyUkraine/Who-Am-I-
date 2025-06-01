@@ -373,7 +373,7 @@ MonoBehaviour:
   _sprintFovMultiplier: 1.15
   _fovTransitionSpeed: 10
   _moveSpeed: 4
-  _sprintMultiplier: 1.5
+  _sprintMultiplier: 1.6
   _jumpForce: 4.5
   _gravity: -9.81
   _mouseSmoothTime: 0.01
@@ -385,7 +385,7 @@ MonoBehaviour:
   _maxStamina: 100
   _staminaRecoveryStanding: 5
   _staminaRecoveryWalking: 2
-  _staminaDrainSprinting: 10
+  _staminaDrainSprinting: 5
   _staminaSprintThreshold: 20
   _ceilCheckerTransform: {fileID: 399605628030573610}
   _groundLayer:
