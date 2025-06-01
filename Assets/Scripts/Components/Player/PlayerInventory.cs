@@ -9,8 +9,10 @@ namespace Components.Player
     {
         public event Action OnKeysChanged;
         public event Action OnItemsChanged;
+        public event Action OnNotesChanged;
 
         private Dictionary<KeyType, int> _keys = new();
+        private List<string> _notes = new();
 
         [SerializeField] private int _medkitCount;
         [SerializeField] private int _batteryCount;
@@ -18,10 +20,7 @@ namespace Components.Player
         public void AddKey(KeyType type)
         {
             if (!_keys.TryAdd(type, 1))
-            {
                 _keys[type]++;
-            }
-
             OnKeysChanged?.Invoke();
         }
 
@@ -73,5 +72,16 @@ namespace Components.Player
         }
 
         public int GetBatteryCount() => _batteryCount;
+
+        public void AddNote(string noteId)
+        {
+            if (!_notes.Contains(noteId))
+            {
+                _notes.Add(noteId);
+                OnNotesChanged?.Invoke();
+            }
+        }
+
+        public IReadOnlyList<string> GetNotes() => _notes.AsReadOnly();
     }
 }
