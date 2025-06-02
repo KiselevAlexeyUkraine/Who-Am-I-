@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Components.Ui.Pages.Menu
@@ -10,6 +9,7 @@ namespace Components.Ui.Pages.Menu
         [SerializeField] private Button _levels;
         [SerializeField] private Button _settings;
         [SerializeField] private Button _authors;
+        [SerializeField] private Button _diary;
         [SerializeField] private Button _exit;
 
         private void Awake()
@@ -19,6 +19,7 @@ namespace Components.Ui.Pages.Menu
             _settings.onClick.AddListener(() => { PageSwitcher.Open(PageName.Settings).Forget(); });
             _authors.onClick.AddListener(() => { PageSwitcher.Open(PageName.Authors).Forget(); });
             _exit.onClick.AddListener(() => { PageSwitcher.Open(PageName.Exit).Forget(); });
+            _diary.onClick.AddListener(() => { PageSwitcher.Open(PageName.DiaryMainMenu).Forget(); });
         }
 
         private void OnDestroy()
@@ -28,6 +29,7 @@ namespace Components.Ui.Pages.Menu
             _settings.onClick.RemoveAllListeners();
             _authors.onClick.RemoveAllListeners();
             _exit.onClick.RemoveAllListeners();
+            _diary.onClick.RemoveAllListeners();
         }
     }
 }

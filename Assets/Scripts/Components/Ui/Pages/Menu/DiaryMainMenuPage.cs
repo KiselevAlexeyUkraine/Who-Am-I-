@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Components.Ui.Pages.Game
+namespace Components.Ui.Pages.Menu
 {
-    public class DiaryPage : BasePage
+    public class DiaryMainMenuPage : BasePage
     {
         [Header("Note Slots (Default Images)")]
         [SerializeField] private Image[] _noteImages; // Ожидается 2 изображения
@@ -26,7 +26,7 @@ namespace Components.Ui.Pages.Game
         {
             _prevButton.onClick.AddListener(ShowPreviousPair);
             _nextButton.onClick.AddListener(ShowNextPair);
-            _exitButton.onClick.AddListener(() => { PageSwitcher.Open(PageName.Complete).Forget(); });
+            _exitButton.onClick.AddListener(() => { PageSwitcher.Open(PageName.Menu).Forget(); });
             _resetButton.onClick.AddListener(ResetAllNotes);
         }
 
@@ -41,7 +41,6 @@ namespace Components.Ui.Pages.Game
             for (int i = 0; i < _collectedNoteSprites.Length && i < _noteImages.Length; i++)
             {
                 bool isCollected = PlayerPrefs.GetInt($"Note_{i}", 0) == 1;
-                Debug.Log($"Note_{i} collected: {isCollected}");
 
                 _noteImages[i].sprite = isCollected
                     ? _collectedNoteSprites[i]
@@ -106,7 +105,6 @@ namespace Components.Ui.Pages.Game
             }
 
             PlayerPrefs.Save();
-            Debug.Log("All notes have been reset.");
             _currentPairIndex = 0;
             LoadNoteSprites();
             ShowNotePairAt(_currentPairIndex);

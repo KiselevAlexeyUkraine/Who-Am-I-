@@ -31,7 +31,7 @@ namespace Components.Ui.Pages.Game
             _nextLevel.onClick.AddListener(() => { PageSwitcher.Open(PageName.NextLevel).Forget(); });
             _restart.onClick.AddListener(() => { PageSwitcher.Open(PageName.GameRestart).Forget(); });
             _menu.onClick.AddListener(() => { PageSwitcher.Open(PageName.GameExit).Forget(); });
-            _diaryButton.onClick.AddListener(() => { PageSwitcher.Open(PageName.Diary).Forget(); });
+            _diaryButton.onClick.AddListener(() => { PageSwitcher.Open(PageName.DiaryGame).Forget(); });
 
             int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
             int totalScenes = SceneManager.sceneCountInBuildSettings;
