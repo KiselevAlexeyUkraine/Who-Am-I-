@@ -2012,6 +2012,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3817904826056134354, guid: b7baf948d5803f5448bc01ef61d1075a, type: 3}
+      propertyPath: m_text
+      value: Soundtrack Author
+      objectReference: {fileID: 0}
+    - target: {fileID: 3817904826056134354, guid: b7baf948d5803f5448bc01ef61d1075a, type: 3}
       propertyPath: m_fontColor.g
       value: 0.20482418
       objectReference: {fileID: 0}
@@ -2438,6 +2442,10 @@ PrefabInstance:
     - target: {fileID: 8914322319847529601, guid: b7baf948d5803f5448bc01ef61d1075a, type: 3}
       propertyPath: _name
       value: herynax
+      objectReference: {fileID: 0}
+    - target: {fileID: 8914322319847529601, guid: b7baf948d5803f5448bc01ef61d1075a, type: 3}
+      propertyPath: _role
+      value: Soundtrack Author
       objectReference: {fileID: 0}
     - target: {fileID: 8914322319847529601, guid: b7baf948d5803f5448bc01ef61d1075a, type: 3}
       propertyPath: _linkButtons.Array.data[5].Url
