@@ -123,3 +123,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _noteId: 1
+  _boxCollider: {fileID: 1648213123791616226}
+  _spriteRenderer: {fileID: 1973201102787793886}

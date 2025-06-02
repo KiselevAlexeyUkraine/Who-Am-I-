@@ -90,25 +90,22 @@ namespace Components.Props
 
         private void SaveNotesProgress()
         {
-            var notes = FindObjectsByType<Note>(FindObjectsSortMode.None);
-            foreach (var note in notes)
+            foreach (var note in Note.AllNotes)
             {
                 if (note.IsCollected)
                 {
                     PlayerPrefs.SetInt($"Note_{note.NoteId}", 1);
                 }
             }
-
             PlayerPrefs.Save();
+
+            Debug.Log("Notes saved via Door script.");
         }
 
-        private async void SaveAndCompleteLevel()
+        private void SaveAndCompleteLevel()
         {
             SaveNotesProgress();
-
-            // Безопасная задержка, чтобы убедиться, что сохранение применилось
-            await System.Threading.Tasks.Task.Delay(300);
-
+            //await System.Threading.Tasks.Task.Delay(1000);
             Opened?.Invoke();
             CompleteLevel();
         }

@@ -99,26 +99,31 @@ namespace Components.Interaction
                     {
                         case PickupItemType.Health:
                             _inventory?.AddMedkit();
+                            Destroy(target);
                             break;
                         case PickupItemType.Battery:
                             _inventory?.AddBattery();
+                            Destroy(target);
                             break;
                         case PickupItemType.RedKey:
                             _inventory?.AddKey(KeyType.Red);
+                            Destroy(target);
                             break;
                         case PickupItemType.BlueKey:
                             _inventory?.AddKey(KeyType.Blue);
+                            Destroy(target);
                             break;
                         case PickupItemType.YellowKey:
                             _inventory?.AddKey(KeyType.Yellow);
+                            Destroy(target);
                             break;
                         case PickupItemType.Note:
                             Note note = target.GetComponent<Note>();
                             if (note != null && !note.IsCollected)
                             {
                                 note.Collect();
+                                _inventory?.AddNote(note.NoteId.ToString());
                             }
-                            _inventory?.AddNote(target.name);
                             break;
                         case PickupItemType.Unknown:
                             IInteractable interactable = hit.collider.GetComponent<IInteractable>();
@@ -127,7 +132,6 @@ namespace Components.Interaction
                     }
 
                     _audioService?.PlayOneShot(_pickupClip);
-                    Destroy(target);
                 }
 
                 return;
