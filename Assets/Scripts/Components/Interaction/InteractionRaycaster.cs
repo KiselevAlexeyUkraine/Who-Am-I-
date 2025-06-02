@@ -113,6 +113,11 @@ namespace Components.Interaction
                             _inventory?.AddKey(KeyType.Yellow);
                             break;
                         case PickupItemType.Note:
+                            Note note = target.GetComponent<Note>();
+                            if (note != null && !note.IsCollected)
+                            {
+                                note.Collect();
+                            }
                             _inventory?.AddNote(target.name);
                             break;
                         case PickupItemType.Unknown:

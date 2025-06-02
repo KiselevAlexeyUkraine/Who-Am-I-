@@ -19,6 +19,7 @@ namespace Components.Ui.Pages
         MenuStart,
         GameRestart,
         NextLevel,
+        Diary,
         Tutorial
     }
 }

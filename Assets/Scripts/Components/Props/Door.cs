@@ -60,9 +60,7 @@ namespace Components.Props
             if (!_useKey || (_useKey && _inventory.HasKey(requiredKey)))
             {
                 if (_useKey)
-                {
                     _inventory.UseKey(requiredKey);
-                }
 
                 _audioService?.PlayOneShot(_openDoor);
                 gameObject.layer = LayerMask.NameToLayer("Default");
@@ -72,11 +70,9 @@ namespace Components.Props
                          {
                              isOpen = true;
 
-
                              if (_isFinalDoor)
                              {
-                                 Opened?.Invoke();
-                                 CompleteLevel();
+                                 SaveAndCompleteLevel();
                              }
                          });
             }
@@ -90,6 +86,31 @@ namespace Components.Props
         private void CompleteLevel()
         {
             _pageSwitcher.Open(PageName.Complete).Forget();
+        }
+
+        private void SaveNotesProgress()
+        {
+            var notes = FindObjectsByType<Note>(FindObjectsSortMode.None);
+            foreach (var note in notes)
+            {
+                if (note.IsCollected)
+                {
+                    PlayerPrefs.SetInt($"Note_{note.NoteId}", 1);
+                }
+            }
+
+            PlayerPrefs.Save();
+        }
+
+        private async void SaveAndCompleteLevel()
+        {
+            SaveNotesProgress();
+
+            // Безопасная задержка, чтобы убедиться, что сохранение применилось
+            await System.Threading.Tasks.Task.Delay(300);
+
+            Opened?.Invoke();
+            CompleteLevel();
         }
     }
 }
