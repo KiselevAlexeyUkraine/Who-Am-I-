@@ -9,11 +9,12 @@ namespace Components.Ui.Pages.Game
 {
     public class CompletePage : BasePage
     {
-        [SerializeField] private TMP_Text _killed;
+        [SerializeField] private TMP_Text _tile;
         //[SerializeField] private TMP_Text _time;
         [SerializeField] private Button _nextLevel;
         [SerializeField] private Button _restart;
         [SerializeField] private Button _menu;
+        [SerializeField] private Button _diaryButton;
 
         [Inject]
         private void Construct(PauseService pauseService, PauseSwitcher pauseSwitcher)
@@ -27,12 +28,10 @@ namespace Components.Ui.Pages.Game
 
         private void Awake()
         {
-            //_killed.text = $"0";
-            //_time.text = $"0";
-
             _nextLevel.onClick.AddListener(() => { PageSwitcher.Open(PageName.NextLevel).Forget(); });
             _restart.onClick.AddListener(() => { PageSwitcher.Open(PageName.GameRestart).Forget(); });
             _menu.onClick.AddListener(() => { PageSwitcher.Open(PageName.GameExit).Forget(); });
+            _diaryButton.onClick.AddListener(() => { PageSwitcher.Open(PageName.DiaryGame).Forget(); });
 
             int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
             int totalScenes = SceneManager.sceneCountInBuildSettings;
@@ -41,13 +40,13 @@ namespace Components.Ui.Pages.Game
 
             if (isLastLevel)
             {
-                _killed.text = "Молодец, ты прошёл игру!";
+                _tile.text = "Молодец, ты прошёл игру!";
                 _nextLevel.interactable = false;
                 _nextLevel.gameObject.SetActive(false);
             }
             else
             {
-                _killed.text = "Уровень пройден!";
+                _tile.text = "Уровень пройден!";
                 _nextLevel.interactable = true;
                 _nextLevel.gameObject.SetActive(true);
             }
@@ -58,6 +57,7 @@ namespace Components.Ui.Pages.Game
             _nextLevel.onClick.RemoveAllListeners();
             _restart.onClick.RemoveAllListeners();
             _menu.onClick.RemoveAllListeners();
+            _diaryButton.onClick.RemoveAllListeners();
         }
     }
 }

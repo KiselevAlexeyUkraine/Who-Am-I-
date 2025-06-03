@@ -3090,8 +3090,8 @@ MonoBehaviour:
   _debug: 1
   _animator: {fileID: 7117880699652560438}
   _source: {fileID: 2957626038569936493}
-  _attackRange: 6
-  _damageAmount: 10
+  _attackRange: 4
+  _damageAmount: 20
   _chaseTimeout: 3
   _ragdollBodies:
   - {fileID: 3878062335896889020}

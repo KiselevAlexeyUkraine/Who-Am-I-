@@ -57,9 +57,7 @@ namespace Components.Interaction
         private void Update()
         {
             if (_heldItem != null)
-            {
                 _heldItem.position = _holdPoint.position;
-            }
 
             if (_heldItem != null && _input.PickupReleased)
             {
@@ -83,11 +81,8 @@ namespace Components.Interaction
                 }
 
                 if (((1 << targetLayer) & _playerLayer) != 0)
-                {
                     continue;
-                }
 
-                // ќбнаружили валидный интерактивный объект
                 OnCrosshairChange?.Invoke(1);
 
                 if (target.CompareTag("Draggable") && _input.PickupPressed && _heldItem == null)
@@ -104,18 +99,31 @@ namespace Components.Interaction
                     {
                         case PickupItemType.Health:
                             _inventory?.AddMedkit();
+                            Destroy(target);
                             break;
                         case PickupItemType.Battery:
                             _inventory?.AddBattery();
+                            Destroy(target);
                             break;
                         case PickupItemType.RedKey:
                             _inventory?.AddKey(KeyType.Red);
+                            Destroy(target);
                             break;
                         case PickupItemType.BlueKey:
                             _inventory?.AddKey(KeyType.Blue);
+                            Destroy(target);
                             break;
                         case PickupItemType.YellowKey:
                             _inventory?.AddKey(KeyType.Yellow);
+                            Destroy(target);
+                            break;
+                        case PickupItemType.Note:
+                            Note note = target.GetComponent<Note>();
+                            if (note != null && !note.IsCollected)
+                            {
+                                note.Collect();
+                                _inventory?.AddNote(note.NoteId.ToString());
+                            }
                             break;
                         case PickupItemType.Unknown:
                             IInteractable interactable = hit.collider.GetComponent<IInteractable>();
@@ -124,13 +132,12 @@ namespace Components.Interaction
                     }
 
                     _audioService?.PlayOneShot(_pickupClip);
-                    Destroy(target);
                 }
 
-                return; // мы обработали валидную цель Ч можно выйти
+                return;
             }
 
-            OnCrosshairChange?.Invoke(0); // ничего не нашли
+            OnCrosshairChange?.Invoke(0);
         }
 
         private PickupItemType DetectPickupType(string name)
@@ -142,6 +149,7 @@ namespace Components.Interaction
             if (lowerName.Contains("red key")) return PickupItemType.RedKey;
             if (lowerName.Contains("blue key")) return PickupItemType.BlueKey;
             if (lowerName.Contains("yellow key")) return PickupItemType.YellowKey;
+            if (lowerName.Contains("note") || lowerName.Contains("paper")) return PickupItemType.Note;
 
             return PickupItemType.Unknown;
         }
@@ -160,9 +168,7 @@ namespace Components.Interaction
             _originalLayer = _heldItem.gameObject.layer;
             int heldLayer = LayerMask.NameToLayer(_heldLayerName);
             if (heldLayer != -1)
-            {
                 _heldItem.gameObject.layer = heldLayer;
-            }
 
             _disabledCollider = collider;
             _disabledCollider.enabled = false;
@@ -186,9 +192,7 @@ namespace Components.Interaction
             _heldItem.gameObject.layer = _originalLayer;
 
             if (_disabledCollider != null)
-            {
                 _disabledCollider.enabled = true;
-            }
 
             _heldItem = null;
             _heldItemRb = null;
@@ -204,6 +208,7 @@ namespace Components.Interaction
             RedKey,
             BlueKey,
             YellowKey,
+            Note,
             Unknown
         }
     }

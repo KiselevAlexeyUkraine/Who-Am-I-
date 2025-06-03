@@ -406,7 +406,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _maxHealth: 100
   _health: 100
-  _healAmount: 25
+  _healAmount: 20
 --- !u!114 &369678109494785529
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -457,7 +457,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _flashlight: {fileID: 8423953538433833137}
   _batteryCapacity: 100
-  _drainRate: 1
+  _drainRate: 3
 --- !u!114 &3153441882707883923
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -470,7 +470,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e55d07d2dd2dcd3409d770ba0e0268fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rayDistance: 4
+  _rayDistance: 3
   _interactableLayer:
     serializedVersion: 2
     m_Bits: 64
