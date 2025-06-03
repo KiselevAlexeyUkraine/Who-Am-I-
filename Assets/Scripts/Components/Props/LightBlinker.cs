@@ -6,12 +6,16 @@ using System.Collections.Generic;
 public class LightBlinker : MonoBehaviour
 {
     [Tooltip("Интенсивность света при включении")]
-    [SerializeField]
-    private float intensity = 1f;
+    [SerializeField] private float intensity = 1f;
 
-    [Tooltip("Материал, у которого будет меняться цвет")]
-    [SerializeField]
-    private Renderer targetRenderer;
+    [Tooltip("Материал, у которого будет меняться цвет или эмиссия")]
+    [SerializeField] private Renderer targetRenderer;
+
+    [Tooltip("Цвет свечения (эмиссии) или цвета материала")]
+    [SerializeField] private Color targetColor = Color.white;
+
+    [Tooltip("Если включено — изменяется только эмиссия. Если выключено — только базовый цвет")]
+    [SerializeField] private bool changeEmission = true;
 
     [Tooltip("Список easing-кривых для случайного выбора")]
     [SerializeField]
@@ -21,12 +25,11 @@ public class LightBlinker : MonoBehaviour
     };
 
     [Tooltip("Таймер. Моргание запускается, когда он == 0")]
-    [SerializeField]
-    private float timer = 5f;
+    [SerializeField] private float timer = 5f;
 
     private Light _light;
-    private bool _started = false;
     private Material _material;
+    private bool _started = false;
 
     private void Start()
     {
@@ -35,6 +38,11 @@ public class LightBlinker : MonoBehaviour
         if (targetRenderer != null)
         {
             _material = targetRenderer.material;
+            ApplyInitialColor();
+        }
+        else
+        {
+            Debug.LogWarning("LightBlinker: targetRenderer не назначен!");
         }
     }
 
@@ -65,25 +73,65 @@ public class LightBlinker : MonoBehaviour
         Sequence seq = DOTween.Sequence();
         seq.SetUpdate(true);
 
-        seq.Append(DOTween.To(() => _light.intensity, x => {
-            _light.intensity = x;
-            UpdateMaterialColor(x);
-        }, 0f, interval).SetEase(randomEase));
+        seq.Append(DOTween.To(
+            () => _light != null ? _light.intensity : 0f,
+            x => {
+                if (_light != null) _light.intensity = x;
+                UpdateMaterial(x);
+            },
+            0f,
+            interval
+        ).SetEase(randomEase));
 
-        seq.Append(DOTween.To(() => _light.intensity, x => {
-            _light.intensity = x;
-            UpdateMaterialColor(x);
-        }, intensity, interval).SetEase(randomEase));
+        seq.Append(DOTween.To(
+            () => _light != null ? _light.intensity : 0f,
+            x => {
+                if (_light != null) _light.intensity = x;
+                UpdateMaterial(x);
+            },
+            intensity,
+            interval
+        ).SetEase(randomEase));
 
         seq.OnComplete(BlinkRandomly);
     }
 
-    private void UpdateMaterialColor(float currentIntensity)
+    private void ApplyInitialColor()
     {
         if (_material != null)
         {
-            Color color = Color.Lerp(Color.black, Color.white, currentIntensity / intensity);
-            _material.color = color;
+            if (changeEmission && _material.HasProperty("_EmissionColor"))
+            {
+                _material.SetColor("_EmissionColor", Color.black);
+                _material.EnableKeyword("_EMISSION");
+            }
+            else if (!changeEmission && _material.HasProperty("_BaseColor"))
+            {
+                _material.SetColor("_BaseColor", Color.black);
+            }
+        }
+    }
+
+    private void UpdateMaterial(float currentIntensity)
+    {
+        if (_material == null) return;
+
+        Color blended = Color.Lerp(Color.black, targetColor, currentIntensity / intensity);
+
+        if (changeEmission)
+        {
+            if (_material.HasProperty("_EmissionColor"))
+            {
+                _material.SetColor("_EmissionColor", blended);
+                _material.EnableKeyword("_EMISSION");
+            }
+        }
+        else
+        {
+            if (_material.HasProperty("_BaseColor"))
+            {
+                _material.SetColor("_BaseColor", blended);
+            }
         }
     }
 }
