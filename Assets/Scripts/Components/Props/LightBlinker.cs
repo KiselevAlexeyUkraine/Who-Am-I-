@@ -5,31 +5,23 @@ using System.Collections.Generic;
 [RequireComponent(typeof(Light))]
 public class LightBlinker : MonoBehaviour
 {
-    [Tooltip("Интенсивность света при включении")]
-    [SerializeField] private float intensity = 1f;
+    [Tooltip("Интенсивность света при включении")][SerializeField] private float intensity = 1f;
 
-    [Tooltip("Материал, у которого будет меняться цвет или эмиссия")]
+    [Tooltip("Материал, у которого будет меняться эмиссия")]
     [SerializeField] private Renderer targetRenderer;
 
-    [Tooltip("Цвет свечения (эмиссии) или цвета материала")]
+    [Tooltip("Цвет свечения (эмиссии)")]
     [SerializeField] private Color targetColor = Color.white;
-
-    [Tooltip("Если включено — изменяется только эмиссия. Если выключено — только базовый цвет")]
-    [SerializeField] private bool changeEmission = true;
 
     [Tooltip("Список easing-кривых для случайного выбора")]
     [SerializeField]
     private List<Ease> possibleEases = new List<Ease> {
-        Ease.Linear, Ease.InOutSine, Ease.InOutQuad, Ease.InOutCubic,
-        Ease.InOutBack, Ease.InOutElastic, Ease.InOutExpo
-    };
-
-    [Tooltip("Таймер. Моргание запускается, когда он == 0")]
-    [SerializeField] private float timer = 5f;
+    Ease.Linear, Ease.InOutSine, Ease.InOutQuad, Ease.InOutCubic,
+    Ease.InOutBack, Ease.InOutElastic, Ease.InOutExpo
+};
 
     private Light _light;
     private Material _material;
-    private bool _started = false;
 
     private void Start()
     {
@@ -39,24 +31,11 @@ public class LightBlinker : MonoBehaviour
         {
             _material = targetRenderer.material;
             ApplyInitialColor();
+            StartBlinking();
         }
         else
         {
             Debug.LogWarning("LightBlinker: targetRenderer не назначен!");
-        }
-    }
-
-    private void Update()
-    {
-        if (!_started && timer <= 0)
-        {
-            _started = true;
-            StartBlinking();
-        }
-
-        if (timer > 0)
-        {
-            timer -= Time.unscaledDeltaTime;
         }
     }
 
@@ -98,40 +77,20 @@ public class LightBlinker : MonoBehaviour
 
     private void ApplyInitialColor()
     {
-        if (_material != null)
+        if (_material != null && _material.HasProperty("_EmissionColor"))
         {
-            if (changeEmission && _material.HasProperty("_EmissionColor"))
-            {
-                _material.SetColor("_EmissionColor", Color.black);
-                _material.EnableKeyword("_EMISSION");
-            }
-            else if (!changeEmission && _material.HasProperty("_BaseColor"))
-            {
-                _material.SetColor("_BaseColor", Color.black);
-            }
+            _material.SetColor("_EmissionColor", Color.black);
+            _material.EnableKeyword("_EMISSION");
         }
     }
 
     private void UpdateMaterial(float currentIntensity)
     {
-        if (_material == null) return;
+        if (_material == null || !_material.HasProperty("_EmissionColor")) return;
 
         Color blended = Color.Lerp(Color.black, targetColor, currentIntensity / intensity);
-
-        if (changeEmission)
-        {
-            if (_material.HasProperty("_EmissionColor"))
-            {
-                _material.SetColor("_EmissionColor", blended);
-                _material.EnableKeyword("_EMISSION");
-            }
-        }
-        else
-        {
-            if (_material.HasProperty("_BaseColor"))
-            {
-                _material.SetColor("_BaseColor", blended);
-            }
-        }
+        _material.SetColor("_EmissionColor", blended);
+        _material.EnableKeyword("_EMISSION");
     }
+
 }
