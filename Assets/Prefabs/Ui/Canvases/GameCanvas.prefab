@@ -2389,6 +2389,14 @@ PrefabInstance:
     m_TransformParent: {fileID: 6387888724495995604}
     m_Modifications:
     - target: {fileID: 4506307934990313637, guid: 0cbe2d4e0ca349943a5169317e2eda99, type: 3}
+      propertyPath: openFade.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4506307934990313637, guid: 0cbe2d4e0ca349943a5169317e2eda99, type: 3}
+      propertyPath: closeFade.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4506307934990313637, guid: 0cbe2d4e0ca349943a5169317e2eda99, type: 3}
       propertyPath: _collectedNoteSprites.Array.size
       value: 11
       objectReference: {fileID: 0}
