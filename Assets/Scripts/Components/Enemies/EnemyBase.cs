@@ -77,7 +77,7 @@ namespace Components.Enemies
 
         private void AITick()
         {
-            if (_isDead || _isStunned) return;
+            if (_isDead || _isStunned || _agent == null || !_agent.isOnNavMesh || !_agent.enabled) return;
 
             _playerVisible = CanSeePlayer(_isChasing);
             float distanceToPlayer = Vector3.Distance(transform.position, _player.position);
@@ -154,31 +154,30 @@ namespace Components.Enemies
 
         protected virtual async UniTask Patrol()
         {
+            if (_isDead || _isStunned || _agent == null || !_agent.isOnNavMesh || !_agent.enabled) return;
             if (_patrolPoints.Length == 0) return;
-            if (_agent == null || !_agent.isActiveAndEnabled || !_agent.isOnNavMesh) return;
             if (_agent.hasPath && _agent.remainingDistance > _agent.stoppingDistance) return;
 
             _isWaitingAtPatrol = true;
             OnIdle?.Invoke();
 
             float elapsed = 0f;
-            while (elapsed < _waitBeforeNextPatrolPoint && !_isDead && !_isStunned)
+            while (elapsed < _waitBeforeNextPatrolPoint && !_isDead && !_isStunned && _agent != null && _agent.isOnNavMesh && _agent.enabled)
             {
                 if (CanSeePlayer(false)) return;
                 await UniTask.Yield(PlayerLoopTiming.Update);
                 elapsed += Time.deltaTime;
             }
 
-            if (_isDead || _isStunned || !_agent.isOnNavMesh) return;
+            if (_isDead || _isStunned || _agent == null || !_agent.isOnNavMesh || !_agent.enabled) return;
 
             OnWalk?.Invoke();
             Vector3 targetPos = _patrolPoints[_currentPatrolIndex].position;
             _agent.SetDestination(targetPos);
             _currentPatrolIndex = (_currentPatrolIndex + 1) % _patrolPoints.Length;
 
-            while (!_isDead && !_isStunned && !_playerVisible)
+            while (!_isDead && !_isStunned && !_playerVisible && _agent != null && _agent.isOnNavMesh && _agent.enabled)
             {
-                if (!_agent.isOnNavMesh) break;
                 if (_agent.pathPending)
                 {
                     await UniTask.Yield(PlayerLoopTiming.Update);
@@ -254,9 +253,13 @@ namespace Components.Enemies
         {
             _isDead = true;
             OnDeath?.Invoke();
-            _agent.isStopped = true;
-            _agent.ResetPath();
-            _agent.enabled = false;
+            CancelInvoke(nameof(AITick));
+            if (_agent != null)
+            {
+                _agent.isStopped = true;
+                _agent.ResetPath();
+                _agent.enabled = false;
+            }
             gameObject.layer = LayerMask.NameToLayer("IgnorePlayer");
             enabled = false;
         }
