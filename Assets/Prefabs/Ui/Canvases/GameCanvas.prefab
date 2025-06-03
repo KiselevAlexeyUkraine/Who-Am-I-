@@ -524,7 +524,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f88e319e32af4b45ab8b9d0d32b69dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pageName: 18
+  pageName: 19
   openFade: {x: 0, y: 1, z: 1}
   closeFade: {x: 1, y: 0, z: 1}
   _group: {fileID: 2031202906423155097}
@@ -2388,6 +2388,34 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6387888724495995604}
     m_Modifications:
+    - target: {fileID: 4506307934990313637, guid: 0cbe2d4e0ca349943a5169317e2eda99, type: 3}
+      propertyPath: openFade.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4506307934990313637, guid: 0cbe2d4e0ca349943a5169317e2eda99, type: 3}
+      propertyPath: closeFade.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4506307934990313637, guid: 0cbe2d4e0ca349943a5169317e2eda99, type: 3}
+      propertyPath: _collectedNoteSprites.Array.size
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4506307934990313637, guid: 0cbe2d4e0ca349943a5169317e2eda99, type: 3}
+      propertyPath: '_collectedNoteSprites.Array.data[7]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 17a8dc41a7965194d9450ab652c7f10c, type: 3}
+    - target: {fileID: 4506307934990313637, guid: 0cbe2d4e0ca349943a5169317e2eda99, type: 3}
+      propertyPath: '_collectedNoteSprites.Array.data[8]'
+      value: 
+      objectReference: {fileID: 21300000, guid: e07439b383c552940816fae57185282c, type: 3}
+    - target: {fileID: 4506307934990313637, guid: 0cbe2d4e0ca349943a5169317e2eda99, type: 3}
+      propertyPath: '_collectedNoteSprites.Array.data[9]'
+      value: 
+      objectReference: {fileID: 21300000, guid: 94d178c14ec25234b862501b49cc5711, type: 3}
+    - target: {fileID: 4506307934990313637, guid: 0cbe2d4e0ca349943a5169317e2eda99, type: 3}
+      propertyPath: '_collectedNoteSprites.Array.data[10]'
+      value: 
+      objectReference: {fileID: 21300000, guid: e14fe995b6c214d41ae2f8005bc1a40b, type: 3}
     - target: {fileID: 8765551861694169552, guid: 0cbe2d4e0ca349943a5169317e2eda99, type: 3}
       propertyPath: m_Name
       value: Diary

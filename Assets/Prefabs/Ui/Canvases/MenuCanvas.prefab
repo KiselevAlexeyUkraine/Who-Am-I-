@@ -371,6 +371,10 @@ MonoBehaviour:
   - {fileID: 21300000, guid: cf39c72854151a14cb5856e5fdeae2ef, type: 3}
   - {fileID: 21300000, guid: 38a89c2b1f5ccc646b325136009fb927, type: 3}
   - {fileID: 21300000, guid: 41e40f7b0e3494a4f95a5ea334a25de0, type: 3}
+  - {fileID: 21300000, guid: 17a8dc41a7965194d9450ab652c7f10c, type: 3}
+  - {fileID: 21300000, guid: e07439b383c552940816fae57185282c, type: 3}
+  - {fileID: 21300000, guid: 94d178c14ec25234b862501b49cc5711, type: 3}
+  - {fileID: 21300000, guid: e14fe995b6c214d41ae2f8005bc1a40b, type: 3}
   _prevButton: {fileID: 4249294857471629268}
   _nextButton: {fileID: 2175082205201583039}
   _exitButton: {fileID: 3378593483330505641}
