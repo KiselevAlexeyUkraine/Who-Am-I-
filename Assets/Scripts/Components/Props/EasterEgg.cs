@@ -19,67 +19,65 @@ namespace Components.Props
         private bool _activated = false;
         private Vector3 _initialPosition;
         private Tween _rotationTween;
+        private Material _cachedMaterial;
 
         private static readonly int EmissionColorID = Shader.PropertyToID("_EmissionColor");
 
-        private void Start()
+        private void Awake()
         {
             _audioSource = GetComponent<AudioSource>();
             _initialPosition = transform.position;
-            EnableGlow(false);
+            if (_glowRenderer != null)
+                _cachedMaterial = _glowRenderer.sharedMaterial;
         }
 
-        private void Update()
+        private void Start()
         {
-            if (_activated && !_audioSource.isPlaying)
-            {
-                StopEffects();
-            }
+            EnableGlow(false);
         }
 
         public void Interact()
         {
-            if (_activated || _audioSource.isPlaying) return;
+            if (_activated || (_audioSource != null && _audioSource.isPlaying)) return;
 
             _activated = true;
             _audioSource?.Play();
             EnableGlow(true);
 
-            // Вращение по локальной оси Y
             _rotationTween = transform.DORotate(
-                     new Vector3(0f, 360f, 0f),
-                     2f,
-                     RotateMode.WorldAxisAdd) // <- глобальная ось Y
-                 .SetEase(Ease.Linear)
-                 .SetLoops(-1);
+                    new Vector3(0f, 360f, 0f),
+                    2f,
+                    RotateMode.WorldAxisAdd)
+                .SetEase(Ease.Linear)
+                .SetLoops(-1);
 
-            // Подпрыгивание
             transform.DOMoveY(_initialPosition.y + _moveAmount, _moveDuration / 2f)
                      .SetLoops(2, LoopType.Yoyo)
                      .SetEase(Ease.InOutSine);
+
+            if (_audioSource != null)
+                Invoke(nameof(StopEffects), _audioSource.clip.length);
         }
 
         private void StopEffects()
         {
             _rotationTween?.Kill();
             EnableGlow(false);
+            _activated = false;
         }
 
         private void EnableGlow(bool enable)
         {
-            if (_glowRenderer != null)
-            {
-                Material mat = _glowRenderer.material;
+            if (_cachedMaterial == null) return;
 
-                if (enable)
-                {
-                    mat.EnableKeyword("_EMISSION");
-                    mat.SetColor(EmissionColorID, _glowColor);
-                }
-                else
-                {
-                    mat.SetColor(EmissionColorID, Color.black);
-                }
+            if (enable)
+            {
+                _cachedMaterial.EnableKeyword("_EMISSION");
+                _cachedMaterial.SetColor(EmissionColorID, _glowColor);
+            }
+            else
+            {
+                _cachedMaterial.SetColor(EmissionColorID, Color.black);
             }
         }
     }
