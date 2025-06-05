@@ -105,7 +105,6 @@ namespace Components.Props
         private void SaveAndCompleteLevel()
         {
             SaveNotesProgress();
-            //await System.Threading.Tasks.Task.Delay(1000);
             Opened?.Invoke();
             CompleteLevel();
         }
