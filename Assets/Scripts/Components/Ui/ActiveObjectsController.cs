@@ -1,22 +1,29 @@
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.SceneManagement;
+using Services;
+using Zenject;
 
 namespace Components.Ui
 {
     public class ActiveObjectsController : MonoBehaviour
     {
-        [Range(0, 3)]
-        [SerializeField]
-        private int activeCount = 0;
+        [Range(0, 4)]
+        [SerializeField] private int activeCount = 0;
 
-        [Tooltip("Назначить ровно 6 GameObjects")]
-        [SerializeField]
-        private List<GameObject> objects = new(6);
+        [Tooltip("Назначить ровно 8 GameObjects")]
+        [SerializeField] private List<GameObject> objects = new(7);
+
+        private SceneService _sceneService;
+
+        [Inject]
+        private void Construct(SceneService sceneService)
+        {
+            _sceneService = sceneService;
+        }
 
         private void OnEnable()
         {
-            int sceneIndex = SceneManager.GetActiveScene().buildIndex;
+            int sceneIndex = _sceneService.GetCurrentScene();
 
             switch (sceneIndex)
             {
@@ -29,11 +36,13 @@ namespace Components.Ui
                     SetActiveObjects(4);
                     break;
                 case 6:
-                case 7:
                     SetActiveObjects(6);
                     break;
+                case 7:
+                    SetActiveObjects(7);
+                    break;
                 default:
-                    SetActiveObjects(Mathf.Clamp(activeCount * 2, 0, 6));
+                    Debug.LogError("Нет ещё уровней");
                     break;
             }
         }
