@@ -7,9 +7,6 @@ namespace Components.Ui
 {
     public class ActiveObjectsController : MonoBehaviour
     {
-        [Range(0, 4)]
-        [SerializeField] private int activeCount = 0;
-
         [Tooltip("Назначить ровно 8 GameObjects")]
         [SerializeField] private List<GameObject> objects = new(7);
 

@@ -2,95 +2,102 @@ using UnityEngine;
 using DG.Tweening;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(Light))]
-public class LightBlinker : MonoBehaviour
+namespace Components.Props
 {
-    [Tooltip("Интенсивность света при включении")][SerializeField] private float intensity = 1f;
-
-    [Tooltip("Материал, у которого будет меняться эмиссия")]
-    [SerializeField] private Renderer targetRenderer;
-
-    [Tooltip("Цвет свечения (эмиссии)")]
-    [SerializeField] private Color targetColor = Color.white;
-
-    [Tooltip("Список easing-кривых для случайного выбора")]
-    [SerializeField]
-    private List<Ease> possibleEases = new List<Ease> {
-    Ease.Linear, Ease.InOutSine, Ease.InOutQuad, Ease.InOutCubic,
-    Ease.InOutBack, Ease.InOutElastic, Ease.InOutExpo
-};
-
-    private Light _light;
-    private Material _material;
-
-    private void Start()
+    [RequireComponent(typeof(Light))]
+    public class LightBlinker : MonoBehaviour
     {
-        _light = GetComponent<Light>();
+        [SerializeField] private float intensity = 1f;
+        [SerializeField] private Renderer targetRenderer;
+        [SerializeField] private Color targetColor = Color.white;
 
-        if (targetRenderer != null)
+        [SerializeField]
+        private List<Ease> possibleEases = new()
         {
-            _material = targetRenderer.material;
+            Ease.Linear, Ease.InOutSine, Ease.InOutQuad, Ease.InOutCubic,
+            Ease.InOutBack, Ease.InOutElastic, Ease.InOutExpo
+        };
+
+        private Light _light;
+        private Material _material;
+        private Sequence _blinkSequence;
+
+        private void Awake()
+        {
+            _light = GetComponent<Light>();
+
+            if (targetRenderer != null)
+                _material = targetRenderer.material;
+        }
+
+        private void Start()
+        {
+            if (_material == null)
+            {
+                Debug.LogWarning("[LightBlinker] Renderer or material is missing.");
+                return;
+            }
+
             ApplyInitialColor();
             StartBlinking();
         }
-        else
+
+        private void StartBlinking()
         {
-            Debug.LogWarning("LightBlinker: targetRenderer не назначен!");
+            BlinkOnce();
+        }
+
+        private void BlinkOnce()
+        {
+            if (_light == null || _material == null) return;
+
+            float duration = Random.Range(0.2f, 0.7f);
+            Ease ease = possibleEases[Random.Range(0, possibleEases.Count)];
+
+            _blinkSequence = DOTween.Sequence().SetUpdate(true);
+            _blinkSequence.Append(DOTween.To(
+                () => _light.intensity,
+                x => ApplyLightAndEmission(x),
+                0f,
+                duration
+            ).SetEase(ease));
+
+            _blinkSequence.Append(DOTween.To(
+                () => _light.intensity,
+                x => ApplyLightAndEmission(x),
+                intensity,
+                duration
+            ).SetEase(ease));
+
+            _blinkSequence.OnComplete(BlinkOnce);
+        }
+
+        private void ApplyLightAndEmission(float value)
+        {
+            if (_light != null)
+                _light.intensity = value;
+
+            if (_material != null && _material.HasProperty("_EmissionColor"))
+            {
+                Color emissive = Color.Lerp(Color.black, targetColor, value / intensity);
+                _material.SetColor("_EmissionColor", emissive);
+                _material.EnableKeyword("_EMISSION");
+            }
+        }
+
+        private void ApplyInitialColor()
+        {
+            if (_material != null && _material.HasProperty("_EmissionColor"))
+            {
+                _material.SetColor("_EmissionColor", Color.black);
+                _material.EnableKeyword("_EMISSION");
+            }
+        }
+
+        private void OnDestroy()
+        {
+            DOTween.Kill(this);
+            _blinkSequence?.Kill();
         }
     }
-
-    private void StartBlinking()
-    {
-        BlinkRandomly();
-    }
-
-    private void BlinkRandomly()
-    {
-        float interval = Random.Range(0.2f, 0.7f);
-        Ease randomEase = possibleEases[Random.Range(0, possibleEases.Count)];
-
-        Sequence seq = DOTween.Sequence();
-        seq.SetUpdate(true);
-
-        seq.Append(DOTween.To(
-            () => _light != null ? _light.intensity : 0f,
-            x => {
-                if (_light != null) _light.intensity = x;
-                UpdateMaterial(x);
-            },
-            0f,
-            interval
-        ).SetEase(randomEase));
-
-        seq.Append(DOTween.To(
-            () => _light != null ? _light.intensity : 0f,
-            x => {
-                if (_light != null) _light.intensity = x;
-                UpdateMaterial(x);
-            },
-            intensity,
-            interval
-        ).SetEase(randomEase));
-
-        seq.OnComplete(BlinkRandomly);
-    }
-
-    private void ApplyInitialColor()
-    {
-        if (_material != null && _material.HasProperty("_EmissionColor"))
-        {
-            _material.SetColor("_EmissionColor", Color.black);
-            _material.EnableKeyword("_EMISSION");
-        }
-    }
-
-    private void UpdateMaterial(float currentIntensity)
-    {
-        if (_material == null || !_material.HasProperty("_EmissionColor")) return;
-
-        Color blended = Color.Lerp(Color.black, targetColor, currentIntensity / intensity);
-        _material.SetColor("_EmissionColor", blended);
-        _material.EnableKeyword("_EMISSION");
-    }
-
 }

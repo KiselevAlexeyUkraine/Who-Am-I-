@@ -16000,10 +16000,8 @@ MonoBehaviour:
   _rotateSpeed: 360
   _moveAmount: 0.5
   _moveDuration: 10
-  _glowTargets:
-  - {fileID: 1711813856012736630}
+  _glowRenderer: {fileID: 1711813856012736630}
   _glowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  _glowProperty: _EmissionColor
 --- !u!65 &3469287836583980223
 BoxCollider:
   m_ObjectHideFlags: 0
