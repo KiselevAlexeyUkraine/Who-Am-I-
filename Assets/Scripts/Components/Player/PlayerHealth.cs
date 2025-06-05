@@ -8,6 +8,8 @@ namespace Components.Player
 {
     public class PlayerHealth : MonoBehaviour, IDamageable
     {
+        public static int DeathCount = 0;
+
         public event Action OnDecrease;
         public event Action OnIncrease;
         public event Action OnDied;
@@ -87,6 +89,7 @@ namespace Components.Player
             if (_isDead) return;
 
             _isDead = true;
+            DeathCount++;
             OnDied?.Invoke();
         }
     }

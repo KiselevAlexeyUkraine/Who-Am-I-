@@ -1,3 +1,4 @@
+using Components.Player;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,7 +15,11 @@ namespace Components.Ui.Pages.Menu
 
         private void Awake()
         {
-            _start.onClick.AddListener(() => { PageSwitcher.Open(PageName.Start).Forget(); });
+            _start.onClick.AddListener(() =>
+            {
+                PageSwitcher.Open(PageName.Start).Forget();
+                PlayerHealth.DeathCount = 0;
+            });
             _levels.onClick.AddListener(() => { PageSwitcher.Open(PageName.Levels).Forget(); });
             _settings.onClick.AddListener(() => { PageSwitcher.Open(PageName.Settings).Forget(); });
             _authors.onClick.AddListener(() => { PageSwitcher.Open(PageName.Authors).Forget(); });

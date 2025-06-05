@@ -4,13 +4,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Zenject;
+using Components.Player;
 
 namespace Components.Ui.Pages.Game
 {
     public class CompletePage : BasePage
     {
         [SerializeField] private TMP_Text _tile;
-        //[SerializeField] private TMP_Text _time;
+        [SerializeField] private TMP_Text _deathCounter;
         [SerializeField] private Button _nextLevel;
         [SerializeField] private Button _restart;
         [SerializeField] private Button _menu;
@@ -28,9 +29,24 @@ namespace Components.Ui.Pages.Game
 
         private void Awake()
         {
-            _nextLevel.onClick.AddListener(() => { PageSwitcher.Open(PageName.NextLevel).Forget(); });
-            _restart.onClick.AddListener(() => { PageSwitcher.Open(PageName.GameRestart).Forget(); });
-            _menu.onClick.AddListener(() => { PageSwitcher.Open(PageName.GameExit).Forget(); });
+            _nextLevel.onClick.AddListener(() =>
+            {
+                PageSwitcher.Open(PageName.NextLevel).Forget();
+                PlayerHealth.DeathCount = 0;
+            });
+
+            _restart.onClick.AddListener(() =>
+            {
+                PageSwitcher.Open(PageName.GameRestart).Forget();
+                PlayerHealth.DeathCount = 0;
+            });
+
+            _menu.onClick.AddListener(() =>
+            {
+                PageSwitcher.Open(PageName.GameExit).Forget();
+                PlayerHealth.DeathCount = 0;
+            });
+
             _diaryButton.onClick.AddListener(() => { PageSwitcher.Open(PageName.DiaryGame).Forget(); });
 
             int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
@@ -43,6 +59,7 @@ namespace Components.Ui.Pages.Game
                 _tile.text = "Молодец, ты прошёл игру!";
                 _nextLevel.interactable = false;
                 _nextLevel.gameObject.SetActive(false);
+                PlayerHealth.DeathCount = 0;
             }
             else
             {
@@ -50,6 +67,8 @@ namespace Components.Ui.Pages.Game
                 _nextLevel.interactable = true;
                 _nextLevel.gameObject.SetActive(true);
             }
+
+            _deathCounter.text = $"{PlayerHealth.DeathCount}";
         }
 
         private void OnDestroy()
