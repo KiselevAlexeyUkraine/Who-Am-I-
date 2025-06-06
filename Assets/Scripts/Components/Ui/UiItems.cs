@@ -3,22 +3,25 @@ using TMPro;
 using Zenject;
 using Components.Player;
 using Components.Items;
+using System.Linq;
+using UnityEngine.UI;
 
 namespace Components.Ui
 {
     public class UiItems : MonoBehaviour
     {
-        [Header("Item Counts")]
+        [Header("Количество предметов")]
         [SerializeField] private TMP_Text _medkitCountText;
         [SerializeField] private TMP_Text _batteryCountText;
 
-        [Header("Key Counts")]
+        [Header("Количество ключей")]
         [SerializeField] private TMP_Text _redKeyText;
         [SerializeField] private TMP_Text _blueKeyText;
         [SerializeField] private TMP_Text _yellowKeyText;
 
-        [Header("Notes")]
+        [Header("Записки")]
         [SerializeField] private TMP_Text _noteCountText;
+        [SerializeField] private Image _notePanel;
 
         private int _totalNotesInLevel;
         private DiContainer _container;
@@ -60,18 +63,29 @@ namespace Components.Ui
 
         private void UpdateUi()
         {
-            // Items
             _medkitCountText.text = $"x {_inventory.GetMedkitCount()}";
             _batteryCountText.text = $"x {_inventory.GetBatteryCount()}";
 
-            // Keys
             _redKeyText.text = $"x {_inventory.GetKeyAmount(KeyType.Red)}";
             _blueKeyText.text = $"x {_inventory.GetKeyAmount(KeyType.Blue)}";
             _yellowKeyText.text = $"x {_inventory.GetKeyAmount(KeyType.Yellow)}";
 
-            // Notes
             int currentNoteCount = _inventory.GetNotes().Count;
-            _noteCountText.text = $"{currentNoteCount} / {_totalNotesInLevel}";
+
+            // Проверка наличия хотя бы одной не собранной записки по сохранениям
+            bool anyUncollected = Note.AllNotes.Any(note => PlayerPrefs.GetInt($"Note_{note.NoteId}", 0) == 0);
+
+            if (_totalNotesInLevel == 0 || !anyUncollected)
+            {
+                _notePanel.enabled = false;
+                _noteCountText.enabled = false;
+            }
+            else
+            {
+                _noteCountText.text = $"{currentNoteCount} / {_totalNotesInLevel}";
+                _notePanel.enabled = true;
+                _noteCountText.enabled = true;
+            }
         }
     }
 }

@@ -45,7 +45,6 @@ namespace Components.Items
             _isCollected = true;
             _boxCollider.enabled = false;
             _spriteRenderer.enabled = false;
-            //gameObject.SetActive(false);
         }
     }
 }

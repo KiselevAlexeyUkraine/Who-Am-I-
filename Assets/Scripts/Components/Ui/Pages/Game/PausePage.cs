@@ -1,7 +1,6 @@
-using Services;
+using Components.Player;
 using UnityEngine;
 using UnityEngine.UI;
-using Zenject;
 
 namespace Components.Ui.Pages.Game
 {
@@ -17,7 +16,11 @@ namespace Components.Ui.Pages.Game
             _continue.onClick.AddListener(() => { PageSwitcher.Open(PageName.Stats).Forget(); });
             _restart.onClick.AddListener(() => { PageSwitcher.Open(PageName.GameRestart).Forget(); });
             _settings.onClick.AddListener(() => { PageSwitcher.Open(PageName.GameSettings).Forget(); });
-            _exit.onClick.AddListener(() => { PageSwitcher.Open(PageName.GameExit).Forget(); });
+            _exit.onClick.AddListener(() =>
+            {
+                PageSwitcher.Open(PageName.GameExit).Forget();
+                PlayerHealth.DeathCount = 0;
+            });
         }
 
         private void OnDestroy()

@@ -1,3 +1,4 @@
+using Components.Player;
 using Services;
 using TMPro;
 using UnityEngine;
@@ -46,6 +47,7 @@ namespace Components.Ui.Pages.Menu
                 {
                     _sceneService.SceneToLoad = levelIndex;
                     PageSwitcher.Open(PageName.Start).Forget();
+                    PlayerHealth.DeathCount = 0;
                 });
             }
         }
