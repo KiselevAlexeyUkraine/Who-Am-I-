@@ -8550,9 +8550,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1128092356}
     m_Modifications:
+    - target: {fileID: 1522856238220459523, guid: 3b95d0ee19bc5024da6498fb731b1f4e, type: 3}
+      propertyPath: m_Size.z
+      value: 2.4
+      objectReference: {fileID: 0}
     - target: {fileID: 7196473514244438123, guid: 3b95d0ee19bc5024da6498fb731b1f4e, type: 3}
       propertyPath: m_Name
       value: Ceiling
+      objectReference: {fileID: 0}
+    - target: {fileID: 7196473514244438123, guid: 3b95d0ee19bc5024da6498fb731b1f4e, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7535879131892523729, guid: 3b95d0ee19bc5024da6498fb731b1f4e, type: 3}
       propertyPath: m_LocalPosition.x
